@@ -1,33 +1,33 @@
-# Project
+# MySQL Tools Service 
+MySQL Tools Service is an application that provides core functionality for various MySQL Server tools.  These features include the following:
+* Connection management
+* Language Service support using VS Code protocol
+* Query execution and resultset management
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+It is based on the [Microsoft SQL Tools Service](https://github.com/Microsoft/sqltoolsservice) and [Microsoft PG Tools Service](https://github.com/Microsoft/mysqltoolsservice)
 
-As the maintainer of this project, please make a few updates:
+## Support
+Support for this extension is provided on our [GitHub Issue Tracker]. You can submit a [bug report], a [feature suggestion] or participate in discussions.
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+## Contributing to the Extension
+See the [developer documentation] for details on how to contribute to this extension.
 
-## Contributing
+## Code of Conduct
+This project has adopted the [Microsoft Open Source Code of Conduct]. For more information see the [Code of Conduct FAQ] or contact [opencode@microsoft.com] with any additional questions or comments.
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+## Privacy Statement
+The [Microsoft Enterprise and Developer Privacy Statement] describes the privacy statement of this software.
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+## License
+This extension is [licensed under the MIT License]. Please see the [third-party notices] file for additional copyright notices and license terms applicable to portions of the software.
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
-
-## Trademarks
-
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+[GitHub Issue Tracker]:https://github.com/Microsoft/mysqltoolsservice/issues
+[bug report]:https://github.com/Microsoft/mysqltoolsservice/issues/new?labels=bug
+[feature suggestion]:https://github.com/Microsoft/mysqltoolsservice/issues/new?labels=feature-request
+[developer documentation]:https://github.com/Microsoft/mysqltoolsservice/wiki/How-to-Contribute
+[Microsoft Enterprise and Developer Privacy Statement]:https://go.microsoft.com/fwlink/?LinkId=786907&lang=en7
+[licensed under the MIT License]:https://github.com/Microsoft/mysqltoolsservice/blob/main/License
+[third-party notices]: https://github.com/Microsoft/mysqltoolsservice/blob/main/ThirdPartyNotices.txt
+[Microsoft Open Source Code of Conduct]:https://opensource.microsoft.com/codeofconduct/
+[Code of Conduct FAQ]:https://opensource.microsoft.com/codeofconduct/faq/
+[opencode@microsoft.com]:mailto:opencode@microsoft.com
