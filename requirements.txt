@@ -1,7 +1,7 @@
 # Shared Requirements
 mysql-connector-python==8.0.31
 
-# PGToolsService Requirements
+# MySQLToolsService Requirements
 inflection==0.5.1
 sqlparse==0.4.3
 prompt_toolkit==3.0.31
