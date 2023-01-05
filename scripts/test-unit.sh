@@ -9,4 +9,4 @@ fi
 python3 -m nose2 -v -A '!is_integration_test' --with-coverage
 
 # Get the coverage diff
-diff-cover coverage_reports/coverage.xml --compare-branch=origin/master-mysql-extension --html-report coverage_reports/coverage_diff.html
+diff-cover coverage_reports/coverage.xml --compare-branch=origin/main --html-report coverage_reports/coverage_diff.html
