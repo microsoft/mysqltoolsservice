@@ -6,6 +6,8 @@
 """Utility functions for the Tools Service"""
 
 import ossdbtoolsservice.utils.cancellation
+import ossdbtoolsservice.utils.telemetryUtils
+import ossdbtoolsservice.utils.eventType
 import ossdbtoolsservice.utils.constants
 import ossdbtoolsservice.utils.log
 import ossdbtoolsservice.utils.serialization
@@ -20,5 +22,7 @@ __all__ = [
     'serialization',
     'thread',
     'time',
-    'validate'
+    'validate',
+    'telemetryUtils',
+    'eventType'
 ]

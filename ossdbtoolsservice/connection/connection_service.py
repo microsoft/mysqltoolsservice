@@ -29,7 +29,8 @@ from ossdbtoolsservice.hosting import RequestContext, ServiceProvider
 from ossdbtoolsservice.utils import constants
 from ossdbtoolsservice.utils.cancellation import CancellationToken
 from ossdbtoolsservice.driver import ServerConnection, ConnectionManager
-
+from ossdbtoolsservice.utils.eventType import EventType
+from ossdbtoolsservice.utils.telemetryUtils import TelemetryParams, TelemetryNotification
 
 class ConnectionInfo(object):
     """Information pertaining to a unique connection instance"""
@@ -203,6 +204,19 @@ class ConnectionService:
         try:
             connection = self.get_connection(params.owner_uri, ConnectionType.DEFAULT)
         except ValueError as err:
+            request_context.send_notification(
+                method = EventType.create(TelemetryNotification),
+                params = TelemetryParams(
+                    'error',
+                    {
+                        'view' : 'List Databases',
+                        'action': 'list databases',
+                        'errorCode': OssdbErrorConstants.LIST_DATABASE_GET_CONNECTION_VALUE_ERROR,
+                        'errorType': str(err)
+                    },
+                    {}
+                )
+            )
             request_context.send_error(message=str(err), code=OssdbErrorConstants.LIST_DATABASE_GET_CONNECTION_VALUE_ERROR)
             return
         except OssdbToolsServiceException as err:
