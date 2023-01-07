@@ -15,6 +15,3 @@ class TelemetryParams:
 
 class TelemetryNotification:
     type = EventType.create("telemetry/mysqlevent")
-
-
-TELEMETRY_NOTIFICATION = 'telemetry/mysqlevent'

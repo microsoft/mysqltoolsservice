@@ -205,7 +205,7 @@ class ConnectionService:
             connection = self.get_connection(params.owner_uri, ConnectionType.DEFAULT)
         except ValueError as err:
             request_context.send_notification(
-                method = EventType.create(TelemetryNotification),
+                method = TelemetryNotification.type,
                 params = TelemetryParams(
                     'error',
                     {
