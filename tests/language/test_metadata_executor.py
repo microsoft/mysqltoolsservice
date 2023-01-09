@@ -7,7 +7,7 @@ import unittest
 from typing import Any, List
 from unittest import mock
 
-import mysql
+import mysql.connector
 
 import tests.mysqlsmo_tests.utils as utils
 from ossdbtoolsservice.language.metadata_executor import MetadataExecutor
@@ -48,7 +48,7 @@ class MockCursor:
     def execute_failure_side_effects(self, *args):
         """Set up dummy results and raise error for query execution failure"""
         self.connection.notices = ["NOTICE: foo", "DEBUG: bar"]
-        raise mysql.DatabaseError()
+        raise mysql.connector.DatabaseError
 
     def __enter__(self):
         return self

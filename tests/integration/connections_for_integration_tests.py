@@ -7,7 +7,7 @@
 
 from abc import abstractclassmethod
 from typing import List
-import mysql
+import mysql.connector
 
 
 class IConnection():

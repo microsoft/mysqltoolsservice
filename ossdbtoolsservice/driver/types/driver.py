@@ -5,7 +5,7 @@
 
 from typing import Tuple
 from abc import ABC, abstractmethod
-import mysql
+import mysql.connector
 
 class ServerConnection(ABC):
     """Abstract base class that outlines methods and properties that connections must implement"""
