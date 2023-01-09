@@ -121,11 +121,6 @@ class Batch:
         cursor = self.get_cursor(conn)
         try:
             cursor.execute(self.batch_text)
-
-            # Commit the transaction if autocommit is True
-            if conn.autocommit:
-                conn.commit()
-
             self.after_execute(cursor)
         except conn.database_error as error:
             self._has_error = True

@@ -48,7 +48,6 @@ class MySQLConnection:
         for config_dict in connection_details_list:
             connection = mysql.connector.connect(**config_dict)
             cls._connections.append(connection)
-            connection.autocommit = True
 
     @classmethod
     def get_connections(cls):
