@@ -47,6 +47,7 @@ class TestMySQLConnection(unittest.TestCase):
             'ssl_disabled': False,
             'ssl_verify_cert': False,
             'ssl_verify_identity': False,
+            'autocommit': True
         }
         print(mysqlConnection.connection_options)
         self.assertDictEqual(mysqlConnection.connection_options, expected_connection_options)
@@ -81,6 +82,7 @@ class TestMySQLConnection(unittest.TestCase):
             'ssl_disabled': False,
             'ssl_verify_cert': True,
             'ssl_verify_identity': False,
+            'autocommit': True
         }
         print(mysqlConnection.connection_options)
         self.assertDictEqual(mysqlConnection.connection_options, expected_connection_options)
@@ -115,6 +117,7 @@ class TestMySQLConnection(unittest.TestCase):
             'ssl_disabled': False,
             'ssl_verify_cert': False,
             'ssl_verify_identity': True,
+            'autocommit': True
         }
         print(mysqlConnection.connection_options)
         self.assertDictEqual(mysqlConnection.connection_options, expected_connection_options)
@@ -145,6 +148,7 @@ class TestMySQLConnection(unittest.TestCase):
             'port': 3306,
             'user': 'nitish',
             'ssl_disabled': True,
+            'autocommit': True
             }
         print(mysqlConnection.connection_options)
         self.assertDictEqual(mysqlConnection.connection_options, expected_connection_options)
@@ -176,6 +180,7 @@ class TestMySQLConnection(unittest.TestCase):
             'port': 3307,
             'user': 'nitish',
             'ssl_disabled': True,
+            'autocommit': True
             }
         print(mysqlConnection.connection_options)
         self.assertDictEqual(mysqlConnection.connection_options, expected_connection_options)
@@ -206,6 +211,7 @@ class TestMySQLConnection(unittest.TestCase):
             'port': 3306,
             'user': 'nitish',
             'ssl_disabled': True,
+            'autocommit': True
             }
         print(mysqlConnection.connection_options)
         self.assertDictEqual(mysqlConnection.connection_options, expected_connection_options)
