@@ -7,7 +7,6 @@
 
 import ossdbtoolsservice.utils.cancellation
 import ossdbtoolsservice.utils.telemetryUtils
-import ossdbtoolsservice.utils.eventType
 import ossdbtoolsservice.utils.constants
 import ossdbtoolsservice.utils.log
 import ossdbtoolsservice.utils.serialization
@@ -23,6 +22,5 @@ __all__ = [
     'thread',
     'time',
     'validate',
-    'telemetryUtils',
-    'eventType'
+    'telemetryUtils'
 ]
