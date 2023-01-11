@@ -69,7 +69,7 @@ def check_if_c_ext_is_used():
 class MySQLConnection(ServerConnection):
     """Wrapper for a mysql-connector connection that makes various properties easier to access"""
 
-    def __init__(self, conn_params: {}, config: Optional[Configuration] = None):
+    def __init__(self, conn_params: dict(), config: Optional[Configuration] = None):
         """
         Creates a new connection wrapper. Parses version string
         :param conn_params: connection parameters dict
@@ -266,9 +266,8 @@ class MySQLConnection(ServerConnection):
                 if self.autocommit:
                     self._conn.commit()
                 return query_results
-            except Exception as e:
-                msg = e.msg
-                return False
+            except mysql.connector.Error as e:
+                self.handle_connection_error(e)
             finally:
                 cursor.close()
 
@@ -297,8 +296,8 @@ class MySQLConnection(ServerConnection):
                 if self.autocommit:
                     self._conn.commit()
                 return col_names, rows
-            except Exception:
-                return False
+            except mysql.connector.Error as e:
+                self.handle_connection_error(e)
             finally:
                 cursor.close()
 

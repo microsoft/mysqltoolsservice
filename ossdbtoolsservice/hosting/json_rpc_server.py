@@ -11,6 +11,7 @@ from ossdbtoolsservice.hosting.json_message import JSONRPCMessage, JSONRPCMessag
 from ossdbtoolsservice.hosting.json_reader import JSONRPCReader
 from ossdbtoolsservice.hosting.json_writer import JSONRPCWriter
 from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
+from ossdbtoolsservice.utils.telemetryUtils import TELEMETRY_NOTIFICATION, TelemetryParams
 
 
 class JSONRPCServer:
@@ -268,6 +269,19 @@ class JSONRPCServer:
             # Make sure we got a handler for the request
             if handler is None:
                 # TODO: Localize?
+                request_context.send_notification(
+                    method = TELEMETRY_NOTIFICATION,
+                    params = TelemetryParams(
+                        'error',
+                        {
+                        'view' : 'Json Rpc',
+                        'action': 'Unsupported Request',
+                        'errorCode': OssdbErrorConstants.UNSUPPORTED_REQUEST_METHOD,
+                        'errorType': f'Requested method is unsupported: {message.message_method}'
+                        },
+                        {}
+                    )
+                )
                 request_context.send_error(message=f'Requested method is unsupported: {message.message_method}', code=OssdbErrorConstants.UNSUPPORTED_REQUEST_METHOD)
                 if self._logger is not None:
                     self._logger.warn('Requested method is unsupported: %s', message.message_method)
@@ -286,6 +300,19 @@ class JSONRPCServer:
                 error_message = f'Unhandled exception while handling request method {message.message_method}: "{e}"'  # TODO: Localize
                 if self._logger is not None:
                     self._logger.exception(error_message)
+                request_context.send_notification(
+                    method = TELEMETRY_NOTIFICATION,
+                    params = TelemetryParams(
+                        'error',
+                        {
+                        'view' : 'Json Rpc',
+                        'action': 'Request Method Processing',
+                        'errorCode': OssdbErrorConstants.REQUEST_METHOD_PROCESSING_UNHANDLED_EXCEPTION,
+                        'errorType': error_message
+                        },
+                        {}
+                    )
+                )
                 request_context.send_error(message=error_message, code=OssdbErrorConstants.REQUEST_METHOD_PROCESSING_UNHANDLED_EXCEPTION)
         elif message.message_type is JSONRPCMessageType.Notification:
             if self._logger is not None:

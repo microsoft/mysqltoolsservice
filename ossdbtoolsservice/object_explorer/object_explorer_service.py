@@ -22,6 +22,7 @@ from ossdbtoolsservice.object_explorer.contracts import (
 from ossdbtoolsservice.object_explorer.session import ObjectExplorerSession
 from ossdbtoolsservice.metadata.contracts import ObjectMetadata
 import ossdbtoolsservice.utils as utils
+from ossdbtoolsservice.utils.telemetryUtils import TELEMETRY_NOTIFICATION, TelemetryParams
 from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
 
 from mysqlsmo import Server as MySQLServer
@@ -108,6 +109,19 @@ class ObjectExplorerService(object):
             message = f'Failed to create OE session: {str(e)}'
             if self._service_provider.logger is not None:
                 self._service_provider.logger.error(message)
+            request_context.send_notification(
+                method = TELEMETRY_NOTIFICATION,
+                params = TelemetryParams(
+                    'error',
+                    {
+                    'view' : 'Object Explorer',
+                    'action': 'Object Explorer Create Session',
+                    'errorCode': OssdbErrorConstants.OBJECT_EXPLORER_CREATE_SESSION_ERROR,
+                    'errorType': message
+                    },
+                    {}
+                )
+            )
             request_context.send_error(message=message, code=OssdbErrorConstants.OBJECT_EXPLORER_CREATE_SESSION_ERROR)
             return
 
@@ -144,6 +158,19 @@ class ObjectExplorerService(object):
             message = f'Failed to close OE session: {str(e)}'   # TODO: Localize
             if self._service_provider.logger is not None:
                 self._service_provider.logger.error(message)
+            request_context.send_notification(
+                method = TELEMETRY_NOTIFICATION,
+                params = TelemetryParams(
+                    'error',
+                    {
+                    'view' : 'Object Explorer',
+                    'action': 'Object Explorer Close Session',
+                    'errorCode': OssdbErrorConstants.OBJECT_EXPLORER_CLOSE_SESSION_ERROR,
+                    'errorType': message
+                    },
+                    {}
+                )
+            )
             request_context.send_error(message=message, code=OssdbErrorConstants.OBJECT_EXPLORER_CLOSE_SESSION_ERROR)
 
     def _handle_refresh_request(self, request_context: RequestContext, params: ExpandParameters) -> None:
@@ -245,6 +272,19 @@ class ObjectExplorerService(object):
             message = f'Failed to expand node: {str(e)}'    # TODO: Localize
             if self._service_provider.logger is not None:
                 self._service_provider.logger.error(message)
+            request_context.send_notification(
+                method = TELEMETRY_NOTIFICATION,
+                params = TelemetryParams(
+                    'error',
+                    {
+                    'view' : 'Object Explorer',
+                    'action': 'Object Explorer Expand Node',
+                    'errorCode': OssdbErrorConstants.OBJECT_EXPLORER_EXPAND_NODE_ERROR,
+                    'errorType': message
+                    },
+                    {}
+                )
+            )
             request_context.send_error(message=message, code=OssdbErrorConstants.OBJECT_EXPLORER_EXPAND_NODE_ERROR)
             return
 
