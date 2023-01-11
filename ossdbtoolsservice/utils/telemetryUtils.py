@@ -4,6 +4,7 @@
 # --------------------------------------------------------------------------------------------
 
 from ossdbtoolsservice.serialization import Serializable
+from ossdbtoolsservice.utils import constants
 
 class TelemetryParams(Serializable):
     """Parameters to be sent back with a telemetry event"""
@@ -16,6 +17,7 @@ class TelemetryProperties(Serializable):
     def __init__(self, eventName: str, properties: dict(), measures):
         self.eventName = eventName
         self.properties = properties
-        self.measures = measures 
+        self.measures = measures
+        self.properties['providerName'] = constants.MYSQL_PROVIDER_NAME
 
 TELEMETRY_NOTIFICATION = "telemetry/mysqlevent"
