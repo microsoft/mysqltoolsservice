@@ -22,7 +22,7 @@ from ossdbtoolsservice.object_explorer.contracts import (
 from ossdbtoolsservice.object_explorer.session import ObjectExplorerSession
 from ossdbtoolsservice.metadata.contracts import ObjectMetadata
 import ossdbtoolsservice.utils as utils
-from ossdbtoolsservice.utils.telemetryUtils import TELEMETRY_NOTIFICATION, TelemetryParams
+from ossdbtoolsservice.utils.telemetryUtils import TELEMETRY_NOTIFICATION, TelemetryErrorParams
 from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
 
 from mysqlsmo import Server as MySQLServer
@@ -111,15 +111,12 @@ class ObjectExplorerService(object):
                 self._service_provider.logger.error(message)
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    'error',
+                params = TelemetryErrorParams(
                     {
-                    'view' : 'Object Explorer',
-                    'action': 'Object Explorer Create Session',
-                    'errorCode': OssdbErrorConstants.OBJECT_EXPLORER_CREATE_SESSION_ERROR,
-                    'errorType': message
-                    },
-                    {}
+                        'view' : 'Object Explorer',
+                        'name': 'Object Explorer Create Session',
+                        'errorCode': str(OssdbErrorConstants.OBJECT_EXPLORER_CREATE_SESSION_ERROR)
+                    }
                 )
             )
             request_context.send_error(message=message, code=OssdbErrorConstants.OBJECT_EXPLORER_CREATE_SESSION_ERROR)
@@ -160,15 +157,12 @@ class ObjectExplorerService(object):
                 self._service_provider.logger.error(message)
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    'error',
+                params = TelemetryErrorParams(
                     {
-                    'view' : 'Object Explorer',
-                    'action': 'Object Explorer Close Session',
-                    'errorCode': OssdbErrorConstants.OBJECT_EXPLORER_CLOSE_SESSION_ERROR,
-                    'errorType': message
-                    },
-                    {}
+                        'view' : 'Object Explorer',
+                        'name': 'Object Explorer Close Session',
+                        'errorCode': str(OssdbErrorConstants.OBJECT_EXPLORER_CLOSE_SESSION_ERROR)
+                    }
                 )
             )
             request_context.send_error(message=message, code=OssdbErrorConstants.OBJECT_EXPLORER_CLOSE_SESSION_ERROR)
@@ -274,21 +268,18 @@ class ObjectExplorerService(object):
                 self._service_provider.logger.error(message)
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    'error',
+                params = TelemetryErrorParams(
                     {
-                    'view' : 'Object Explorer',
-                    'action': 'Object Explorer Expand Node',
-                    'errorCode': OssdbErrorConstants.OBJECT_EXPLORER_EXPAND_NODE_ERROR,
-                    'errorType': message
-                    },
-                    {}
+                        'view' : 'Object Explorer',
+                        'name': 'Object Explorer Expand Node',
+                        'errorCode': str(OssdbErrorConstants.OBJECT_EXPLORER_EXPAND_NODE_ERROR)
+                    }
                 )
             )
             request_context.send_error(message=message, code=OssdbErrorConstants.OBJECT_EXPLORER_EXPAND_NODE_ERROR)
             return
 
-    def _create_connection(self, session: ObjectExplorerSession, database_name: str) -> Optional[ServerConnection]:
+    def _create_connection(self, session: ObjectExplorerSession, database_name: str, request_context: RequestContext) -> Optional[ServerConnection]:
         conn_service = self._service_provider[utils.constants.CONNECTION_SERVICE_NAME]
 
         options = session.connection_details.options.copy()
@@ -297,11 +288,11 @@ class ObjectExplorerService(object):
 
         key_uri = session.id + database_name
         connect_request = ConnectRequestParams(conn_details, key_uri, ConnectionType.OBJECT_EXLPORER)
-        connect_result = conn_service.connect(connect_request)
+        connect_result = conn_service.connect(connect_request, request_context)
         if connect_result.error_message is not None:
             raise RuntimeError(connect_result.error_message)
 
-        connection = conn_service.get_connection(key_uri, ConnectionType.OBJECT_EXLPORER)
+        connection = conn_service.get_connection(key_uri, ConnectionType.OBJECT_EXLPORER, request_context)
         return connection
 
     def _initialize_session(self, request_context: RequestContext, session: ObjectExplorerSession):
@@ -315,17 +306,17 @@ class ObjectExplorerService(object):
                 session.id,
                 ConnectionType.OBJECT_EXLPORER
             )
-            connect_result = conn_service.connect(connect_request)
+            connect_result = conn_service.connect(connect_request, request_context)
             if connect_result is None:
                 raise RuntimeError('Connection was cancelled during connect')   # TODO Localize
             if connect_result.error_message is not None:
                 raise RuntimeError(connect_result.error_message)
 
             # Step 2: Get the connection to use for object explorer
-            connection = conn_service.get_connection(session.id, ConnectionType.OBJECT_EXLPORER)
+            connection = conn_service.get_connection(session.id, ConnectionType.OBJECT_EXLPORER, request_context)
 
             # Step 3: Create the Server object for the session and create the root node for the server
-            session.server = self._server(connection, functools.partial(self._create_connection, session))
+            session.server = self._server(connection, functools.partial(self._create_connection, session, request_context=request_context))
             metadata = ObjectMetadata(session.server.urn_base, None, 'Database', session.server.maintenance_db_name)
             node = NodeInfo()
             node.label = session.connection_details.database_name

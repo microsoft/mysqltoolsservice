@@ -11,7 +11,7 @@ from ossdbtoolsservice.hosting.json_message import JSONRPCMessage, JSONRPCMessag
 from ossdbtoolsservice.hosting.json_reader import JSONRPCReader
 from ossdbtoolsservice.hosting.json_writer import JSONRPCWriter
 from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
-from ossdbtoolsservice.utils.telemetryUtils import TELEMETRY_NOTIFICATION, TelemetryParams
+from ossdbtoolsservice.utils.telemetryUtils import TELEMETRY_NOTIFICATION, TelemetryErrorParams
 
 
 class JSONRPCServer:
@@ -271,15 +271,12 @@ class JSONRPCServer:
                 # TODO: Localize?
                 request_context.send_notification(
                     method = TELEMETRY_NOTIFICATION,
-                    params = TelemetryParams(
-                        'error',
+                    params = TelemetryErrorParams(
                         {
-                        'view' : 'Json Rpc',
-                        'action': 'Unsupported Request',
-                        'errorCode': OssdbErrorConstants.UNSUPPORTED_REQUEST_METHOD,
-                        'errorType': f'Requested method is unsupported: {message.message_method}'
-                        },
-                        {}
+                            'view' : 'Json Rpc',
+                            'name': 'Unsupported Request',
+                            'errorCode': str(OssdbErrorConstants.UNSUPPORTED_REQUEST_METHOD),
+                        }
                     )
                 )
                 request_context.send_error(message=f'Requested method is unsupported: {message.message_method}', code=OssdbErrorConstants.UNSUPPORTED_REQUEST_METHOD)
@@ -302,15 +299,12 @@ class JSONRPCServer:
                     self._logger.exception(error_message)
                 request_context.send_notification(
                     method = TELEMETRY_NOTIFICATION,
-                    params = TelemetryParams(
-                        'error',
+                    params = TelemetryErrorParams(
                         {
-                        'view' : 'Json Rpc',
-                        'action': 'Request Method Processing',
-                        'errorCode': OssdbErrorConstants.REQUEST_METHOD_PROCESSING_UNHANDLED_EXCEPTION,
-                        'errorType': error_message
-                        },
-                        {}
+                            'view' : 'Json Rpc',
+                            'name': 'Request Method Processing',
+                            'errorCode': str(OssdbErrorConstants.REQUEST_METHOD_PROCESSING_UNHANDLED_EXCEPTION)
+                        }
                     )
                 )
                 request_context.send_error(message=error_message, code=OssdbErrorConstants.REQUEST_METHOD_PROCESSING_UNHANDLED_EXCEPTION)

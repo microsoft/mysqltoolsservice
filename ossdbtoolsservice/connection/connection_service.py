@@ -29,7 +29,7 @@ from ossdbtoolsservice.hosting import RequestContext, ServiceProvider
 from ossdbtoolsservice.utils import constants
 from ossdbtoolsservice.utils.cancellation import CancellationToken
 from ossdbtoolsservice.driver import ServerConnection, ConnectionManager
-from ossdbtoolsservice.utils.telemetryUtils import TelemetryParams, TELEMETRY_NOTIFICATION
+from ossdbtoolsservice.utils.telemetryUtils import TelemetryErrorParams, TELEMETRY_NOTIFICATION
 
 class ConnectionInfo(object):
     """Information pertaining to a unique connection instance"""
@@ -92,7 +92,7 @@ class ConnectionService:
         self._service_provider.server.set_request_handler(GET_CONNECTION_STRING_REQUEST, self.handle_get_connection_string_request)
 
     # PUBLIC METHODS #######################################################
-    def connect(self, params: ConnectRequestParams, request_context: RequestContext) -> Optional[ConnectionCompleteParams]:
+    def connect(self, params: ConnectRequestParams, request_context: RequestContext = None) -> Optional[ConnectionCompleteParams]:
         """
         Open a connection using the given connection information.
 
@@ -143,7 +143,7 @@ class ConnectionService:
 
         # The connection was not canceled, so add the connection and respond
         connection_info.add_connection(params.type, connection)
-        self._notify_on_connect(params.type, connection_info)
+        self._notify_on_connect(params.type, connection_info, request_context)
         return _build_connection_response(connection_info, params.type)
 
     def disconnect(self, owner_uri: str, connection_type: Optional[ConnectionType]) -> bool:
@@ -159,7 +159,7 @@ class ConnectionService:
         connection_info = self.owner_to_connection_map.get(owner_uri)
         return self._close_connections(connection_info, connection_type) if connection_info is not None else False
 
-    def get_connection(self, owner_uri: str, connection_type: ConnectionType, request_context: RequestContext) -> Optional[ServerConnection]:
+    def get_connection(self, owner_uri: str, connection_type: ConnectionType, request_context: RequestContext = None) -> Optional[ServerConnection]:
         """
         Get a connection for the given owner URI and connection type
 
@@ -205,15 +205,12 @@ class ConnectionService:
         except ValueError as err:
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    'error',
+                params = TelemetryErrorParams(
                     {
-                        'view' : 'List Databases',
-                        'action': 'List Databases Connection',
-                        'errorCode': OssdbErrorConstants.LIST_DATABASE_GET_CONNECTION_VALUE_ERROR,
-                        'errorType': str(err)
-                    },
-                    {}
+                        'view' : 'Connection',
+                        'name': 'List Databases Connection Value Error',
+                        'errorCode': str(OssdbErrorConstants.LIST_DATABASE_GET_CONNECTION_VALUE_ERROR)
+                    }
                 )
             )
             request_context.send_error(message=str(err), code=OssdbErrorConstants.LIST_DATABASE_GET_CONNECTION_VALUE_ERROR)
@@ -233,15 +230,12 @@ class ConnectionService:
             
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    'error',
+                params = TelemetryErrorParams(
                     {
-                    'view' : 'List Databases',
-                    'action': 'List Databases',
-                    'errorCode': OssdbErrorConstants.LIST_DATABASE_ERROR,
-                    'errorType': str(err)
-                    },
-                    {}
+                        'view' : 'Connection',
+                        'name': 'List Databases Error',
+                        'errorCode': str(OssdbErrorConstants.LIST_DATABASE_ERROR)
+                    }
                 )
             )
             
@@ -291,14 +285,14 @@ class ConnectionService:
         if response is not None:
             request_context.send_notification(CONNECTION_COMPLETE_METHOD, response)
 
-    def _notify_on_connect(self, conn_type: ConnectionType, info: ConnectionInfo) -> None:
+    def _notify_on_connect(self, conn_type: ConnectionType, info: ConnectionInfo, request_context: RequestContext = None) -> None:
         """
         Sends a notification to any listeners that a new connection has been established.
         Only sent if the connection is a new, defalt connection
         """
         if (conn_type == ConnectionType.DEFAULT):
             for callback in self._on_connect_callbacks:
-                callback(info)
+                callback(info, request_context)
 
     @staticmethod
     def _close_connections(connection_info: ConnectionInfo, connection_type=None):
@@ -376,15 +370,12 @@ def _build_connection_response_error(connection_info: ConnectionInfo, connection
 
     request_context.send_notification(
         method = TELEMETRY_NOTIFICATION,
-        params = TelemetryParams(
-            'error',
+        params = TelemetryErrorParams(
             {
-                'view' : 'Create Connection',
-                'action': 'Connection Request',
-                'errorCode': err.errorCode,
-                'errorType': err.errorMsg
-            },
-            {}
+                'view' : 'Connection',
+                'name': 'Build Connection Error',
+                'errorCode': str(err.errorCode)
+            }
         )
     )
 

@@ -9,7 +9,7 @@ from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
 from ossdbtoolsservice.hosting import RequestContext, ServiceProvider
 from ossdbtoolsservice.metadata.contracts.object_metadata import ObjectMetadata
 from ossdbtoolsservice.scripting.scripter import Scripter
-from ossdbtoolsservice.utils.telemetryUtils import TelemetryParams, TELEMETRY_NOTIFICATION
+from ossdbtoolsservice.utils.telemetryUtils import TelemetryErrorParams, TELEMETRY_NOTIFICATION
 from ossdbtoolsservice.scripting.contracts import (
     ScriptAsParameters, ScriptAsResponse, SCRIPTAS_REQUEST
 )
@@ -51,7 +51,7 @@ class ScriptingService(object):
 
             scripting_operation = params.operation
             connection_service = self._service_provider[utils.constants.CONNECTION_SERVICE_NAME]
-            connection = connection_service.get_connection(params.owner_uri, ConnectionType.QUERY)
+            connection = connection_service.get_connection(params.owner_uri, ConnectionType.QUERY, request_context)
             object_metadata = self.create_metadata(params)
 
             scripter = Scripter(connection)
@@ -64,15 +64,12 @@ class ScriptingService(object):
         
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    'error',
+                params = TelemetryErrorParams(
                     {
-                    'view' : 'Script As',
-                    'action': 'Script As',
-                    'errorCode': OssdbErrorConstants.SCRIPTAS_REQUEST_ERROR,
-                    'errorType': str(e)
-                    },
-                    {}
+                        'view' : 'Scripting',
+                        'name': 'Script As Request',
+                        'errorCode': str(OssdbErrorConstants.SCRIPTAS_REQUEST_ERROR)
+                    }
                 )
             )
             request_context.send_error(message=str(e), data=params, code=OssdbErrorConstants.SCRIPTAS_REQUEST_ERROR)

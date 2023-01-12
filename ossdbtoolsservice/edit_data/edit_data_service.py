@@ -27,7 +27,7 @@ from ossdbtoolsservice.query_execution.query_execution_service import ExecuteReq
 from ossdbtoolsservice.connection import ConnectionService  # noqa
 from ossdbtoolsservice.query_execution import QueryExecutionService  # noqa
 import ossdbtoolsservice.utils as utils
-from ossdbtoolsservice.utils.telemetryUtils import TELEMETRY_NOTIFICATION, TelemetryParams
+from ossdbtoolsservice.utils.telemetryUtils import TELEMETRY_NOTIFICATION, TelemetryErrorParams
 from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
 
 
@@ -55,22 +55,19 @@ class EditDataService(object):
     def _edit_initialize(self, request_context: RequestContext, params: InitializeEditParams) -> None:
         utils.validate.is_object_params_not_none_or_whitespace('params', params, 'owner_uri', 'schema_name', 'object_name', 'object_type')
 
-        connection = self._connection_service.get_connection(params.owner_uri, ConnectionType.QUERY)
+        connection = self._connection_service.get_connection(params.owner_uri, ConnectionType.QUERY, request_context)
         session = DataEditorSession(SmoEditTableMetadataFactory())
         self._active_sessions[params.owner_uri] = session
 
         if params.query_string is not None:
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    'error',
+                params = TelemetryErrorParams(
                     {
-                    'view' : 'Edit Data',
-                    'action': 'Edit Data Custom Query',
-                    'errorCode': OssdbErrorConstants.EDIT_DATA_CUSTOM_QUERY_UNSUPPORTED_ERROR,
-                    'errorType': 'Edit data with custom query is not supported currently.'
-                    },
-                    {}
+                        'view' : 'Edit Data',
+                        'name': 'Edit Data Custom Query',
+                        'errorCode': str(OssdbErrorConstants.EDIT_DATA_CUSTOM_QUERY_UNSUPPORTED_ERROR)
+                    }
                 )
             )
             request_context.send_error(message='Edit data with custom query is not supported currently.', code=OssdbErrorConstants.EDIT_DATA_CUSTOM_QUERY_UNSUPPORTED_ERROR)
@@ -140,7 +137,7 @@ class EditDataService(object):
                                      edit_session.revert_row(params.row_id))
 
     def _edit_commit(self, request_context: RequestContext, params: EditCommitRequest) -> None:
-        connection = self._connection_service.get_connection(params.owner_uri, ConnectionType.QUERY)
+        connection = self._connection_service.get_connection(params.owner_uri, ConnectionType.QUERY, request_context)
 
         def on_success():
             request_context.send_response(EditCommitResponse())
@@ -148,15 +145,12 @@ class EditDataService(object):
         def on_failure(error: str):
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    'error',
+                params = TelemetryErrorParams(
                     {
-                    'view' : 'Edit Data',
-                    'action': 'Edit Data Commit',
-                    'errorCode': OssdbErrorConstants.EDIT_DATA_COMMIT_FAILURE,
-                    'errorType': error
-                    },
-                    {}
+                        'view' : 'Edit Data',
+                        'name': 'Edit Data Commit',
+                        'errorCode': str(OssdbErrorConstants.EDIT_DATA_COMMIT_FAILURE)
+                    }
                 )
             )
             request_context.send_error(message=error, code=OssdbErrorConstants.EDIT_DATA_COMMIT_FAILURE)
@@ -172,15 +166,12 @@ class EditDataService(object):
         except KeyError:
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    'error',
+                params = TelemetryErrorParams(
                     {
-                    'view' : 'Edit Data',
-                    'action': 'Edit Data Session',
-                    'errorCode': OssdbErrorConstants.EDIT_DATA_SESSION_NOT_FOUND,
-                    'errorType': 'Edit data session not found'
-                    },
-                    {}
+                        'view' : 'Edit Data',
+                        'name': 'Edit Data Session Not Found',
+                        'errorCode': str(OssdbErrorConstants.EDIT_DATA_SESSION_NOT_FOUND)
+                    }
                 )
             )
             request_context.send_error(message='Edit data session not found', code=OssdbErrorConstants.EDIT_DATA_SESSION_NOT_FOUND)
@@ -196,15 +187,12 @@ class EditDataService(object):
         except Exception as ex:
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    'error',
+                params = TelemetryErrorParams(
                     {
-                    'view' : 'Edit Data',
-                    'action': 'Edit Data Session Operation',
-                    'errorCode': OssdbErrorConstants.EDIT_DATA_SESSION_OPERATION_FAILURE,
-                    'errorType': str(ex)
-                    },
-                    {}
+                        'view' : 'Edit Data',
+                        'name': 'Edit Data Session Operation',
+                        'errorCode': str(OssdbErrorConstants.EDIT_DATA_SESSION_OPERATION_FAILURE)
+                    }
                 )
             )
             request_context.send_error(message=str(ex), code=OssdbErrorConstants.EDIT_DATA_SESSION_OPERATION_FAILURE)
