@@ -102,6 +102,9 @@ class QueryExecutionService(object):
     def get_query(self, owner_uri: str):
         return self.query_results[owner_uri]
 
+    def start_query_execution_thread(self, request_context: RequestContext, params: ExecuteRequestParamsBase, worker_args: ExecuteRequestWorkerArgs = None):
+        self._start_query_execution_thread(request_context, params, worker_args)
+    
     # REQUEST HANDLERS #####################################################
 
     def _handle_save_as_csv_request(self, request_context: RequestContext, params: SaveResultsAsCsvRequestParams) -> None:

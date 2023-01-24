@@ -16,6 +16,7 @@ from ossdbtoolsservice.connection import ConnectionService
 from ossdbtoolsservice.hosting import JSONRPCServer, ServiceProvider
 from ossdbtoolsservice.language import LanguageService
 from ossdbtoolsservice.metadata import MetadataService
+from ossdbtoolsservice.new_database.new_database_service import NewDatabaseService
 from ossdbtoolsservice.object_explorer import ObjectExplorerService
 from ossdbtoolsservice.query_execution import QueryExecutionService
 from ossdbtoolsservice.scripting.scripting_service import ScriptingService
@@ -42,7 +43,8 @@ def _create_server(input_stream, output_stream, server_logger, provider):
         constants.SCRIPTING_SERVICE_NAME: ScriptingService,
         constants.WORKSPACE_SERVICE_NAME: WorkspaceService,
         constants.EDIT_DATA_SERVICE_NAME: EditDataService,
-        constants.TASK_SERVICE_NAME: TaskService
+        constants.TASK_SERVICE_NAME: TaskService,
+        constants.NEW_DATABASE_SERVICE_NAME: NewDatabaseService
     }
     service_box = ServiceProvider(rpc_server, services, provider, server_logger)
     service_box.initialize()
