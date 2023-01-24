@@ -244,13 +244,13 @@ class MySQLConnection(ServerConnection):
         with self._conn.cursor(buffered=True) as cursor:
             try:
                 cursor.execute(query)
-                if all:
-                    query_results = cursor.fetchall()
-                else:
-                    query_results = cursor.fetchone()
-                return query_results
+                if cursor.with_rows:
+                    if all:
+                        query_results = cursor.fetchall()
+                    else:
+                        query_results = cursor.fetchone()
+                    return query_results
             except Exception as e:
-                msg = e.msg
                 return False
             finally:
                 cursor.close()
@@ -268,16 +268,17 @@ class MySQLConnection(ServerConnection):
         with self._conn.cursor(buffered=True) as cursor:
             try:
                 cursor.execute(query)
-                # Get a list of column names
-                col_names: List[str] = [col[0] for col in cursor.description]
+                if cursor.with_rows:
+                    # Get a list of column names
+                    col_names: List[str] = [col[0] for col in cursor.description]
 
-                rows: List[dict] = []
-                if cursor.rowcount > 0:
-                    for row in cursor:
-                        # Map each column name to the corresponding value in each row
-                        row_dict = {col_names[index]: row for index, row in enumerate(row)}
-                        rows.append(row_dict)
-                return col_names, rows
+                    rows: List[dict] = []
+                    if cursor.rowcount > 0:
+                        for row in cursor:
+                            # Map each column name to the corresponding value in each row
+                            row_dict = {col_names[index]: row for index, row in enumerate(row)}
+                            rows.append(row_dict)
+                    return col_names, rows
             except Exception:
                 return False
             finally:
