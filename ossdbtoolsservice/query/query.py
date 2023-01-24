@@ -127,6 +127,7 @@ class Query:
 
         # Run each batch sequentially
         try:
+            # When Analyze Explain is used we have to disable auto commit
             if self._disable_auto_commit:
                 connection.execute_query('Set autocommit = 0;')
 
