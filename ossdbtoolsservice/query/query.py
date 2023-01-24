@@ -55,6 +55,7 @@ class Query:
         self._execution_state: ExecutionState = ExecutionState.NOT_STARTED
         self._owner_uri: str = owner_uri
         self._query_text = query_text
+        self._disable_auto_commit = False
         self._current_batch_index = 0
         self._batches: List[Batch] = []
         self._execution_plan_options = query_execution_settings.execution_plan_options
@@ -78,6 +79,7 @@ class Query:
                 if self._execution_plan_options.include_estimated_execution_plan_xml:
                     sql_statement_text = Query.EXPLAIN_QUERY_TEMPLATE.format(sql_statement_text)
                 elif self._execution_plan_options.include_actual_execution_plan_xml:
+                    self._disable_auto_commit = True
                     sql_statement_text = Query.ANALYZE_EXPLAIN_QUERY_TEMPLATE.format(sql_statement_text)
 
             batch = create_batch(
@@ -125,6 +127,9 @@ class Query:
 
         # Run each batch sequentially
         try:
+            if self._disable_auto_commit:
+                connection.execute_query('Set autocommit = 0;')
+
             for batch_index, batch in enumerate(self._batches):
                 self._current_batch_index = batch_index
 
@@ -133,6 +138,8 @@ class Query:
 
                 batch.execute(connection)
         finally:
+            if connection.open:
+                connection.execute_query('Set autocommit = 1')
             self._execution_state = ExecutionState.EXECUTED
 
     def get_subset(self, batch_index: int, start_index: int, end_index: int):
