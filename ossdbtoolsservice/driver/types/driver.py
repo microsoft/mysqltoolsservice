@@ -5,7 +5,6 @@
 
 from typing import Tuple
 from abc import ABC, abstractmethod
-import mysql.connector
 
 class ServerConnection(ABC):
     """Abstract base class that outlines methods and properties that connections must implement"""
@@ -53,7 +52,7 @@ class ServerConnection(ABC):
 
     @property
     @abstractmethod
-    def database_error(self) -> mysql.connector.DatabaseError:
+    def database_error(self) -> str:
         """ Returns the type of database error this connection throws"""
 
     @property
