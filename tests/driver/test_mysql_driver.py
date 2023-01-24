@@ -47,11 +47,11 @@ class TestMySQLConnection(unittest.TestCase):
             'ssl_disabled': False,
             'ssl_verify_cert': False,
             'ssl_verify_identity': False,
+            'autocommit': True
         }
         print(mysqlConnection.connection_options)
         self.assertDictEqual(mysqlConnection.connection_options, expected_connection_options)
         self.assertIs(mysqlConnection.connection, self.mock_mysql_connection)
-        self.assertTrue(mysqlConnection.autocommit)
         self.assertEqual(mysqlConnection.default_database, constants.DEFAULT_DB[constants.MYSQL_PROVIDER_NAME])
     
     def test_mysql_connection_ssl_enable_verify_ca(self):
@@ -82,11 +82,11 @@ class TestMySQLConnection(unittest.TestCase):
             'ssl_disabled': False,
             'ssl_verify_cert': True,
             'ssl_verify_identity': False,
+            'autocommit': True
         }
         print(mysqlConnection.connection_options)
         self.assertDictEqual(mysqlConnection.connection_options, expected_connection_options)
         self.assertIs(mysqlConnection.connection, self.mock_mysql_connection)
-        self.assertTrue(mysqlConnection.autocommit)
         self.assertEqual(mysqlConnection.default_database, constants.DEFAULT_DB[constants.MYSQL_PROVIDER_NAME])
 
     def test_mysql_connection_ssl_enable_verify_identity(self):
@@ -117,11 +117,11 @@ class TestMySQLConnection(unittest.TestCase):
             'ssl_disabled': False,
             'ssl_verify_cert': False,
             'ssl_verify_identity': True,
+            'autocommit': True
         }
         print(mysqlConnection.connection_options)
         self.assertDictEqual(mysqlConnection.connection_options, expected_connection_options)
         self.assertIs(mysqlConnection.connection, self.mock_mysql_connection)
-        self.assertTrue(mysqlConnection.autocommit)
         self.assertEqual(mysqlConnection.default_database, constants.DEFAULT_DB[constants.MYSQL_PROVIDER_NAME])
 
     def test_mysql_connection_ssl_disable(self):
@@ -148,11 +148,11 @@ class TestMySQLConnection(unittest.TestCase):
             'port': 3306,
             'user': 'nitish',
             'ssl_disabled': True,
+            'autocommit': True
             }
         print(mysqlConnection.connection_options)
         self.assertDictEqual(mysqlConnection.connection_options, expected_connection_options)
         self.assertIs(mysqlConnection.connection, self.mock_mysql_connection)
-        self.assertTrue(mysqlConnection.autocommit)
         self.assertEqual(mysqlConnection.default_database, constants.DEFAULT_DB[constants.MYSQL_PROVIDER_NAME])
 
     def test_mysql_connection_port_provided(self):
@@ -180,11 +180,11 @@ class TestMySQLConnection(unittest.TestCase):
             'port': 3307,
             'user': 'nitish',
             'ssl_disabled': True,
+            'autocommit': True
             }
         print(mysqlConnection.connection_options)
         self.assertDictEqual(mysqlConnection.connection_options, expected_connection_options)
         self.assertIs(mysqlConnection.connection, self.mock_mysql_connection)
-        self.assertTrue(mysqlConnection.autocommit)
         self.assertEqual(mysqlConnection.default_database, constants.DEFAULT_DB[constants.MYSQL_PROVIDER_NAME])
 
     def test_mysql_connection_dbname_provided(self):
@@ -211,11 +211,11 @@ class TestMySQLConnection(unittest.TestCase):
             'port': 3306,
             'user': 'nitish',
             'ssl_disabled': True,
+            'autocommit': True
             }
         print(mysqlConnection.connection_options)
         self.assertDictEqual(mysqlConnection.connection_options, expected_connection_options)
         self.assertIs(mysqlConnection.connection, self.mock_mysql_connection)
-        self.assertTrue(mysqlConnection.autocommit)
         self.assertEqual(mysqlConnection.default_database, constants.DEFAULT_DB[constants.MYSQL_PROVIDER_NAME])
 
 

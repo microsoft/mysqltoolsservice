@@ -6,16 +6,10 @@
 from typing import Tuple
 from abc import ABC, abstractmethod
 
-
 class ServerConnection(ABC):
     """Abstract base class that outlines methods and properties that connections must implement"""
 
     # PROPERTIES ###########################################################
-    @property
-    @abstractmethod
-    def autocommit(self) -> bool:
-        """Returns the current autocommit status for this connection"""
-
     @property
     @abstractmethod
     def host_name(self) -> str:
@@ -93,15 +87,6 @@ class ServerConnection(ABC):
         """
 
     # METHODS ##############################################################
-
-    @autocommit.setter
-    @abstractmethod
-    def autocommit(self, mode: bool):
-        """
-        Sets the connection's autocommit setting to the specified mode
-        :param mode: True or False
-        """
-
     @abstractmethod
     def commit(self):
         """

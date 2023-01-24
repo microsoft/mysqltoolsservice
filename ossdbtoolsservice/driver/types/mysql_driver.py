@@ -69,7 +69,7 @@ def check_if_c_ext_is_used():
 class MySQLConnection(ServerConnection):
     """Wrapper for a mysql-connector connection that makes various properties easier to access"""
 
-    def __init__(self, conn_params: {}, config: Optional[Configuration] = None):
+    def __init__(self, conn_params: dict(), config: Optional[Configuration] = None):
         """
         Creates a new connection wrapper. Parses version string
         :param conn_params: connection parameters dict
@@ -109,7 +109,7 @@ class MySQLConnection(ServerConnection):
             self._connection_options['port'] = constants.DEFAULT_PORT[constants.MYSQL_PROVIDER_NAME]
 
         # Setting autocommit to True initally
-        self._autocommit_status = True
+        self._connection_options['autocommit'] = True
 
         # Pass connection parameters as keyword arguments to the connection by unpacking the connection_options dict
         try:
@@ -142,12 +142,6 @@ class MySQLConnection(ServerConnection):
             self._server_type = "MySQL"
 
     # PROPERTIES ###########################################################
-
-    @property
-    def autocommit(self) -> bool:
-        """Returns the current autocommit status for this connection"""
-        return self._autocommit_status
-
     @property
     def host_name(self) -> str:
         """Returns the hostname for the current connection"""
@@ -219,14 +213,6 @@ class MySQLConnection(ServerConnection):
         return self._conn.is_connected()
 
     # METHODS ##############################################################
-    @autocommit.setter
-    def autocommit(self, mode: bool):
-        """
-        Sets the given autocommit status for this connection
-        :param mode: True or False
-        """
-        self._autocommit_status = mode
-
     def commit(self):
         """
         Commits the current transaction
@@ -258,16 +244,13 @@ class MySQLConnection(ServerConnection):
         with self._conn.cursor(buffered=True) as cursor:
             try:
                 cursor.execute(query)
-                if all:
-                    query_results = cursor.fetchall()
-                else:
-                    query_results = cursor.fetchone()
-                
-                if self.autocommit:
-                    self._conn.commit()
-                return query_results
+                if cursor.with_rows:
+                    if all:
+                        query_results = cursor.fetchall()
+                    else:
+                        query_results = cursor.fetchone()
+                    return query_results
             except Exception as e:
-                msg = e.msg
                 return False
             finally:
                 cursor.close()
@@ -285,18 +268,17 @@ class MySQLConnection(ServerConnection):
         with self._conn.cursor(buffered=True) as cursor:
             try:
                 cursor.execute(query)
-                # Get a list of column names
-                col_names: List[str] = [col[0] for col in cursor.description]
+                if cursor.with_rows:
+                    # Get a list of column names
+                    col_names: List[str] = [col[0] for col in cursor.description]
 
-                rows: List[dict] = []
-                if cursor.rowcount > 0:
-                    for row in cursor:
-                        # Map each column name to the corresponding value in each row
-                        row_dict = {col_names[index]: row for index, row in enumerate(row)}
-                        rows.append(row_dict)
-                if self.autocommit:
-                    self._conn.commit()
-                return col_names, rows
+                    rows: List[dict] = []
+                    if cursor.rowcount > 0:
+                        for row in cursor:
+                            # Map each column name to the corresponding value in each row
+                            row_dict = {col_names[index]: row for index, row in enumerate(row)}
+                            rows.append(row_dict)
+                    return col_names, rows
             except Exception:
                 return False
             finally:
