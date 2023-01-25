@@ -126,6 +126,7 @@ class MySQLConnection(ServerConnection):
         # Calculate the server version
         # Source: https://stackoverflow.com/questions/8987679/how-to-retrieve-the-current-version-of-a-mysql-database
         version_string = self.execute_query("SELECT VERSION();")[0][0]
+        self._connection_id = self.execute_query("SELECT CONNECTION_ID();", all=False)[0]
 
         # Split the different components of the version string
         version_components: List = re.split(r"[.-]", version_string)
@@ -200,7 +201,7 @@ class MySQLConnection(ServerConnection):
     def cancellation_query(self) -> str:
         """Returns a SQL command to end the current query execution process"""
         # TODO generate a query that kills the current query process
-        return "-- ;"
+        return "kill query {0}".format(self._connection_id)
 
     @property
     def connection(self) -> mysql.connector.MySQLConnection:
