@@ -6,6 +6,7 @@ inflection==0.5.1
 sqlparse==0.4.3
 prompt_toolkit==3.0.31
 xlsxwriter==3.0.3
+ipgetter2==1.1.10
 
 # SMO Requirements
 jinja2==3.1.2
