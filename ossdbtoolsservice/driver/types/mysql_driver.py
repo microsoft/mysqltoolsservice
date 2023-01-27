@@ -200,7 +200,6 @@ class MySQLConnection(ServerConnection):
     @property
     def cancellation_query(self) -> str:
         """Returns a SQL command to end the current query execution process"""
-        # TODO generate a query that kills the current query process
         return "kill query {0}".format(self._connection_id)
 
     @property
