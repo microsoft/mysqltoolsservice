@@ -16,7 +16,7 @@ class ListDatabasesParams(Serializable):
 
     def __init__(self):
         self.owner_uri: str = None
-        self.include_details = None
+        self.include_details: bool = None
 
 
 class ListDatabasesResponse:

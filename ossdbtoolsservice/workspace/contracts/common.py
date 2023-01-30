@@ -90,11 +90,14 @@ class TextDocumentPosition(Serializable):
     def get_child_serializable_types(cls):
         return {'text_document': TextDocumentIdentifier, 'position': Position}
 
+    @classmethod
+    def ignore_extra_attributes(cls):
+        return True
+
     def __init__(self):
         self.text_document: TextDocumentIdentifier = None
         self.position: Position = None
-        self.context = None
-
+    
 
 class Location(Serializable):
     """
