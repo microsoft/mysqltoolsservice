@@ -27,7 +27,7 @@ from ossdbtoolsservice.query_execution.query_execution_service import ExecuteReq
 from ossdbtoolsservice.connection import ConnectionService  # noqa
 from ossdbtoolsservice.query_execution import QueryExecutionService  # noqa
 import ossdbtoolsservice.utils as utils
-from ossdbtoolsservice.utils.telemetryUtils import TELEMETRY_NOTIFICATION, TelemetryErrorParams
+from ossdbtoolsservice.utils.telemetryUtils import TELEMETRY_NOTIFICATION, TELEMETRY_ERROR_EVENT, TelemetryParams
 from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
 
 
@@ -62,7 +62,8 @@ class EditDataService(object):
         if params.query_string is not None:
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryErrorParams(
+                params = TelemetryParams(
+                    TELEMETRY_ERROR_EVENT,
                     {
                         'view' : 'Edit Data',
                         'name': 'Edit Data Custom Query',
@@ -145,7 +146,8 @@ class EditDataService(object):
         def on_failure(error: str):
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryErrorParams(
+                params = TelemetryParams(
+                    TELEMETRY_ERROR_EVENT,
                     {
                         'view' : 'Edit Data',
                         'name': 'Edit Data Commit',
@@ -166,7 +168,8 @@ class EditDataService(object):
         except KeyError:
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryErrorParams(
+                params = TelemetryParams(
+                    TELEMETRY_ERROR_EVENT,
                     {
                         'view' : 'Edit Data',
                         'name': 'Edit Data Session Not Found',
@@ -187,7 +190,8 @@ class EditDataService(object):
         except Exception as ex:
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryErrorParams(
+                params = TelemetryParams(
+                    TELEMETRY_ERROR_EVENT,
                     {
                         'view' : 'Edit Data',
                         'name': 'Edit Data Session Operation',

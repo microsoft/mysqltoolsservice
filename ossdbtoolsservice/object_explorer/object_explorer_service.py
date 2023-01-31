@@ -22,7 +22,7 @@ from ossdbtoolsservice.object_explorer.contracts import (
 from ossdbtoolsservice.object_explorer.session import ObjectExplorerSession
 from ossdbtoolsservice.metadata.contracts import ObjectMetadata
 import ossdbtoolsservice.utils as utils
-from ossdbtoolsservice.utils.telemetryUtils import TELEMETRY_NOTIFICATION, TelemetryErrorParams
+from ossdbtoolsservice.utils.telemetryUtils import TELEMETRY_NOTIFICATION, TELEMETRY_ERROR_EVENT, TelemetryParams
 from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
 
 from mysqlsmo import Server as MySQLServer
@@ -111,7 +111,8 @@ class ObjectExplorerService(object):
                 self._service_provider.logger.error(message)
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryErrorParams(
+                params = TelemetryParams(
+                    TELEMETRY_ERROR_EVENT,
                     {
                         'view' : 'Object Explorer',
                         'name': 'Object Explorer Create Session',
@@ -157,7 +158,8 @@ class ObjectExplorerService(object):
                 self._service_provider.logger.error(message)
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryErrorParams(
+                params = TelemetryParams(
+                    TELEMETRY_ERROR_EVENT,
                     {
                         'view' : 'Object Explorer',
                         'name': 'Object Explorer Close Session',
@@ -268,7 +270,8 @@ class ObjectExplorerService(object):
                 self._service_provider.logger.error(message)
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryErrorParams(
+                params = TelemetryParams(
+                    TELEMETRY_ERROR_EVENT,
                     {
                         'view' : 'Object Explorer',
                         'name': 'Object Explorer Expand Node',

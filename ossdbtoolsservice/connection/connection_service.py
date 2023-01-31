@@ -29,7 +29,7 @@ from ossdbtoolsservice.hosting import RequestContext, ServiceProvider
 from ossdbtoolsservice.utils import constants
 from ossdbtoolsservice.utils.cancellation import CancellationToken
 from ossdbtoolsservice.driver import ServerConnection, ConnectionManager
-from ossdbtoolsservice.utils.telemetryUtils import TelemetryErrorParams, TELEMETRY_NOTIFICATION
+from ossdbtoolsservice.utils.telemetryUtils import TelemetryParams, TELEMETRY_NOTIFICATION, TELEMETRY_ERROR_EVENT
 
 class ConnectionInfo(object):
     """Information pertaining to a unique connection instance"""
@@ -205,7 +205,8 @@ class ConnectionService:
         except ValueError as err:
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryErrorParams(
+                params = TelemetryParams(
+                    TELEMETRY_ERROR_EVENT,
                     {
                         'view' : 'Connection',
                         'name': 'List Databases Connection Value Error',
@@ -230,7 +231,8 @@ class ConnectionService:
             
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryErrorParams(
+                params = TelemetryParams(
+                    TELEMETRY_ERROR_EVENT,
                     {
                         'view' : 'Connection',
                         'name': 'List Databases Error',
@@ -370,7 +372,8 @@ def _build_connection_response_error(connection_info: ConnectionInfo, connection
 
     request_context.send_notification(
         method = TELEMETRY_NOTIFICATION,
-        params = TelemetryErrorParams(
+        params = TelemetryParams(
+            TELEMETRY_ERROR_EVENT,
             {
                 'view' : 'Connection',
                 'name': 'Build Connection Error',

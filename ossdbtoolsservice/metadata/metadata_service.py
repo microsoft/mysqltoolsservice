@@ -13,7 +13,7 @@ from ossdbtoolsservice.metadata.contracts import (
     MetadataListParameters, MetadataListResponse, METADATA_LIST_REQUEST, MetadataType, ObjectMetadata)
 from ossdbtoolsservice.utils import constants
 from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
-from ossdbtoolsservice.utils.telemetryUtils import TELEMETRY_NOTIFICATION, TelemetryErrorParams
+from ossdbtoolsservice.utils.telemetryUtils import TELEMETRY_NOTIFICATION, TELEMETRY_ERROR_EVENT, TelemetryParams
 
 # Source: https://gist.githubusercontent.com/rakeshsingh/456724716534610caf83/raw/4f9ffba2a1bc365395a70da4d392dae5fd014e3f/Mysql-Show-All-Schema-Objects.sql
 MYSQL_METADATA_QUERY = """
@@ -73,7 +73,8 @@ class MetadataService:
                 self._service_provider.logger.exception('Unhandled exception while executing the metadata list worker thread')
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryErrorParams(
+                params = TelemetryParams(
+                    TELEMETRY_ERROR_EVENT,
                     {
                         'view' : 'Metadata',
                         'name': 'Get Metadata Failure',

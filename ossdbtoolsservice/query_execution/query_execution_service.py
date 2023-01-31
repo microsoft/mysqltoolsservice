@@ -38,7 +38,7 @@ from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
 from ossdbtoolsservice.connection.contracts import ConnectRequestParams
 from ossdbtoolsservice.connection.contracts import ConnectionType
 import ossdbtoolsservice.utils as utils
-from ossdbtoolsservice.utils.telemetryUtils import TelemetryErrorParams, TELEMETRY_NOTIFICATION
+from ossdbtoolsservice.utils.telemetryUtils import TelemetryParams, TELEMETRY_NOTIFICATION, TELEMETRY_ERROR_EVENT
 from ossdbtoolsservice.query.data_storage import (
     FileStreamFactory, SaveAsCsvFileStreamFactory, SaveAsJsonFileStreamFactory, SaveAsExcelFileStreamFactory, SaveAsXmlFileStreamFactory
 )
@@ -192,7 +192,8 @@ class QueryExecutionService(object):
                     'Encountered exception while handling query request')  # TODO: Localize
             request_context.send_notification(
                     method = TELEMETRY_NOTIFICATION,
-                    params = TelemetryErrorParams(
+                    params = TelemetryParams(
+                        TELEMETRY_ERROR_EVENT,
                         {
                             'view' : 'Query Execution',
                             'name': 'Query Execution Get Connection',
@@ -242,7 +243,8 @@ class QueryExecutionService(object):
                     'Encountered exception while handling query request')  # TODO: Localize
             request_context.send_notification(
                     method = TELEMETRY_NOTIFICATION,
-                    params = TelemetryErrorParams(
+                    params = TelemetryParams(
+                        TELEMETRY_ERROR_EVENT,
                         {
                             'view' : 'Query Execution',
                             'name': 'Query Execution Execute Deploy Get Connection',
@@ -299,7 +301,8 @@ class QueryExecutionService(object):
         elif self.query_results[params.owner_uri].execution_state is ExecutionState.EXECUTING:
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryErrorParams(
+                params = TelemetryParams(
+                    TELEMETRY_ERROR_EVENT,
                     {
                         'view' : 'Query Execution',
                         'name': 'Another Query Executing',
@@ -360,7 +363,8 @@ class QueryExecutionService(object):
             
             request_context.send_notification(
                     method = TELEMETRY_NOTIFICATION,
-                    params = TelemetryErrorParams(
+                    params = TelemetryParams(
+                        TELEMETRY_ERROR_EVENT,
                         {
                             'view' : 'Query Execution',
                             'name': 'Query Execution Cancel Query',
@@ -375,7 +379,8 @@ class QueryExecutionService(object):
             if params.owner_uri not in self.query_results:
                 request_context.send_notification(
                     method = TELEMETRY_NOTIFICATION,
-                    params = TelemetryErrorParams(
+                    params = TelemetryParams(
+                        TELEMETRY_ERROR_EVENT,
                         {
                             'view' : 'Query Execution',
                             'name': 'Dispose Query No Query',
@@ -395,7 +400,8 @@ class QueryExecutionService(object):
         except Exception as e:
             request_context.send_notification(
                     method = TELEMETRY_NOTIFICATION,
-                    params = TelemetryErrorParams(
+                    params = TelemetryParams(
+                        TELEMETRY_ERROR_EVENT,
                         {
                             'view' : 'Query Execution',
                             'name': 'Dispose Query Request',
@@ -529,7 +535,8 @@ class QueryExecutionService(object):
             message = 'Failed to save {0}: {1}'.format(ntpath.basename(params.file_path), reason)
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryErrorParams(
+                params = TelemetryParams(
+                    TELEMETRY_ERROR_EVENT,
                     {
                         'view' : 'Query Execution',
                         'name': 'Save Query Result',

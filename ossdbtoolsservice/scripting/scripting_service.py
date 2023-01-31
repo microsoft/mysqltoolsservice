@@ -9,7 +9,7 @@ from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
 from ossdbtoolsservice.hosting import RequestContext, ServiceProvider
 from ossdbtoolsservice.metadata.contracts.object_metadata import ObjectMetadata
 from ossdbtoolsservice.scripting.scripter import Scripter
-from ossdbtoolsservice.utils.telemetryUtils import TelemetryErrorParams, TELEMETRY_NOTIFICATION
+from ossdbtoolsservice.utils.telemetryUtils import TelemetryParams, TELEMETRY_NOTIFICATION, TELEMETRY_ERROR_EVENT
 from ossdbtoolsservice.scripting.contracts import (
     ScriptAsParameters, ScriptAsResponse, SCRIPTAS_REQUEST
 )
@@ -64,7 +64,8 @@ class ScriptingService(object):
         
             request_context.send_notification(
                 method = TELEMETRY_NOTIFICATION,
-                params = TelemetryErrorParams(
+                params = TelemetryParams(
+                    TELEMETRY_ERROR_EVENT,
                     {
                         'view' : 'Scripting',
                         'name': 'Script As Request',

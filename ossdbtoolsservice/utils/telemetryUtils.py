@@ -4,14 +4,20 @@
 # --------------------------------------------------------------------------------------------
 
 from ossdbtoolsservice.serialization import Serializable
-from ossdbtoolsservice.utils import constants
 
-class TelemetryErrorParams(Serializable):
+class TelemetryParams(Serializable):
     """Parameters to be sent back with a telemetry event"""
 
-    def __init__(self, properties: dict()):
-        properties['providerName'] = 'MySQL'
+    def __init__(self, eventName: str, properties: dict(), measures: dict() = None):
         properties['errorType'] = 'MySQLException'
-        self.params = properties
+        self.params = {
+            'eventName': eventName,
+            'properties': properties,
+            'measures': measures
+        }
 
-TELEMETRY_NOTIFICATION = "telemetry/mysqlerror"
+# Method name listened by client
+TELEMETRY_NOTIFICATION = "telemetry/mysqlevent"
+
+# Telemetry Event Name for Errors
+TELEMETRY_ERROR_EVENT = "error"

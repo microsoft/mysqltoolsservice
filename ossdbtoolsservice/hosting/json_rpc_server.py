@@ -11,7 +11,7 @@ from ossdbtoolsservice.hosting.json_message import JSONRPCMessage, JSONRPCMessag
 from ossdbtoolsservice.hosting.json_reader import JSONRPCReader
 from ossdbtoolsservice.hosting.json_writer import JSONRPCWriter
 from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
-from ossdbtoolsservice.utils.telemetryUtils import TELEMETRY_NOTIFICATION, TelemetryErrorParams
+from ossdbtoolsservice.utils.telemetryUtils import TELEMETRY_NOTIFICATION, TELEMETRY_ERROR_EVENT, TelemetryParams
 
 
 class JSONRPCServer:
@@ -271,7 +271,8 @@ class JSONRPCServer:
                 # TODO: Localize?
                 request_context.send_notification(
                     method = TELEMETRY_NOTIFICATION,
-                    params = TelemetryErrorParams(
+                    params = TelemetryParams(
+                        TELEMETRY_ERROR_EVENT,
                         {
                             'view' : 'Json Rpc',
                             'name': 'Unsupported Request',
@@ -299,7 +300,8 @@ class JSONRPCServer:
                     self._logger.exception(error_message)
                 request_context.send_notification(
                     method = TELEMETRY_NOTIFICATION,
-                    params = TelemetryErrorParams(
+                    params = TelemetryParams(
+                        TELEMETRY_ERROR_EVENT,
                         {
                             'view' : 'Json Rpc',
                             'name': 'Request Method Processing',
