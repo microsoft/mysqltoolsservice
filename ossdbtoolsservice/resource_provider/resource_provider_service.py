@@ -6,9 +6,11 @@
 from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
 from ossdbtoolsservice.hosting.json_rpc_server import RequestContext
 from ossdbtoolsservice.hosting.service_provider import ServiceProvider
+from ossdbtoolsservice.resource_provider.azure.AzureResourceManager import AzureResourceManager
 from ossdbtoolsservice.resource_provider.contracts.firewall_rule  import HANDLE_FIREWALL_RULE_REQUEST, CREATE_FIREWALL_RULE_REQUEST, HandleFirewallRuleRequest, HandleFirewallRuleResponse, CreateFirewallRuleRequest, CreateFirewallRuleResponse
 from ossdbtoolsservice.utils.ip import get_public_ip
 from ossdbtoolsservice.utils.constants import MYSQL_PROVIDER_NAME
+import uuid
 
 class ResourceProviderService(object):
     """Service for resource provider"""
@@ -19,6 +21,7 @@ class ResourceProviderService(object):
             HANDLE_FIREWALL_RULE_REQUEST: self._handle_handle_firewall_rule_request,
             CREATE_FIREWALL_RULE_REQUEST: self._handle_create_firewall_rule_request
         }
+        self._resource_manager: AzureResourceManager = AzureResourceManager()
 
     def register(self, service_provider: ServiceProvider):
         self._service_provider = service_provider
@@ -43,4 +46,12 @@ class ResourceProviderService(object):
         request_context.send_response(response)
         
     def _handle_create_firewall_rule_request(self, request_context: RequestContext, params: CreateFirewallRuleRequest):
-        request_context.send_response(CreateFirewallRuleResponse())
+        server_name = params.server_name.split(".")[0]
+        tenant_id = params.account.properties["owningTenant"]["id"]
+        token = params.security_token_mappings[tenant_id]["token"]
+        expires_on = params.security_token_mappings[tenant_id]["expiresOn"]
+        base_url = params.account.properties["providerSettings"]["settings"]["armResource"]["endpoint"]
+        session = self._resource_manager.create_session(token, expires_on, base_url)
+        server_info = self._resource_manager.fetch_server_details(session, server_name)
+        self._resource_manager.create_firewall_rule(session, server_info, params.start_ip_address, params.end_ip_address, params.firewall_rule_name)
+        request_context.send_response(CreateFirewallRuleResponse(success=True))

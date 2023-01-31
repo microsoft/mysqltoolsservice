@@ -23,11 +23,16 @@ class HandleFirewallRuleResponse:
 
 class CreateFirewallRuleRequest(Serializable):
     
+    @classmethod
+    def get_child_serializable_types(cls):
+        return {'account': Account}
+
     def __init__(self):
         self.account: Account = None
         self.server_name: str = None
         self.start_ip_address: str = None
         self.end_ip_address: str = None
+        self.firewall_rule_name: str = None
         self.security_token_mappings: dict = None
 
 class CreateFirewallRuleResponse:

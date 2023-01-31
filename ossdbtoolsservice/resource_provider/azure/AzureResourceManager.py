@@ -6,22 +6,36 @@
 
 from ossdbtoolsservice.resource_provider.azure.AzureResourceManagermentSession import AzureResourceManagementSession
 from ossdbtoolsservice.resource_provider.azure.ServerInfo import ServerInfo
+from azure.mgmt.resourcegraph.models import QueryRequest, QueryResponse
+from azure.mgmt.rdbms.mysql_flexibleservers.models import FirewallRule
 
 GET_SERVERS_RESOURCE_GRAPH_QUERY = "Resources | where type =~ 'Microsoft.DBforMySQL/flexibleServers'| where name == '{}'"
 
 class AzureResourceManager:
     
+    def __init__(self) -> None:
+        pass
+
     def create_session(self, token: str, expires_on: str, base_url: str) -> AzureResourceManagementSession:
         return AzureResourceManagementSession(token, expires_on, base_url)
 
     def fetch_server_details(self, session: AzureResourceManagementSession, server_name: str) -> ServerInfo:
         client = session.get_resource_graph_client()
-        query = client.operations.models.QueryRequest(GET_SERVERS_RESOURCE_GRAPH_QUERY.format(server_name))
-        response = client.resources(query)
-        return self._build_server_info(response)
+        query = QueryRequest(query=GET_SERVERS_RESOURCE_GRAPH_QUERY.format(server_name))
+        response: QueryResponse = client.resources(query)
+        if response.total_records == 0:
+            return None
+        else:
+            return self._build_server_info(response.data[0])
     
-    def create_firewall_rule(self, session: AzureResourceManagementSession, server: ServerInfo, start_ip: str, end_ip: str) -> None:
-        return None
+    def create_firewall_rule(self, session: AzureResourceManagementSession, server: ServerInfo, start_ip: str, end_ip: str, rule_name: str) -> None:
+        client = session.get_mysql_management_client(server.subscription_id)
+        response = client.firewall_rules.begin_create_or_update(
+            server.resource_group, 
+            server.name, rule_name, 
+            FirewallRule(start_ip_address=start_ip, end_ip_address=end_ip))
+        response.result()
         
-    def _build_server_info(self, response) -> ServerInfo:
-        return ServerInfo()
+        
+    def _build_server_info(self, server_details_dict: dict) -> ServerInfo:
+        return ServerInfo.from_dict(server_details_dict)

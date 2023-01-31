@@ -7,12 +7,20 @@ from ossdbtoolsservice.serialization import Serializable
 
 class Account(Serializable):
 
+    @classmethod
+    def get_child_serializable_types(cls):
+        return {'key': AccountKey, 'display_info': AccountDisplayInfo}
+
     def __init__(self):
         self.key: AccountKey = None
         self.display_info: AccountDisplayInfo = None
         self.properties = None
         self.is_stale: bool = None
         self.delete: bool = None
+    
+    @classmethod
+    def ignore_extra_attributes(cls):
+        return True
         
 class AccountKey(Serializable):
     
@@ -21,6 +29,10 @@ class AccountKey(Serializable):
         self.provider_args = None
         self.account_id: str = None
         self.account_version: str = None
+    
+    @classmethod
+    def ignore_extra_attributes(cls):
+        return True
         
 class AccountDisplayInfo(Serializable):
     
@@ -31,3 +43,7 @@ class AccountDisplayInfo(Serializable):
         self.user_id: str = None
         self.email: str = None
         self.name: str = None
+    
+    @classmethod
+    def ignore_extra_attributes(cls):
+        return True
