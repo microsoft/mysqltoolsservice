@@ -6,6 +6,7 @@
 
 from ossdbtoolsservice.resource_provider.azure.AzureResourceManagermentSession import AzureResourceManagementSession
 from ossdbtoolsservice.resource_provider.azure.ServerInfo import ServerInfo
+from ossdbtoolsservice.resource_provider.contracts.account import AccountSecurityToken
 from azure.mgmt.resourcegraph.models import QueryRequest, QueryResponse
 from azure.mgmt.rdbms.mysql_flexibleservers.models import FirewallRule
 
@@ -16,8 +17,8 @@ class AzureResourceManager:
     def __init__(self) -> None:
         pass
 
-    def create_session(self, token: str, expires_on: str, base_url: str) -> AzureResourceManagementSession:
-        return AzureResourceManagementSession(token, expires_on, base_url)
+    def create_session(self, token: AccountSecurityToken, base_url: str) -> AzureResourceManagementSession:
+        return AzureResourceManagementSession(token, base_url)
 
     def fetch_server_details(self, session: AzureResourceManagementSession, server_name: str) -> ServerInfo:
         client = session.get_resource_graph_client()

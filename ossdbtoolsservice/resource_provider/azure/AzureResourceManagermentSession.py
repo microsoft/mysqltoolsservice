@@ -5,13 +5,14 @@
 
 
 from ossdbtoolsservice.resource_provider.azure.credentials.BearerTokenCredential import BearerTokenCredential
+from ossdbtoolsservice.resource_provider.contracts.account import AccountSecurityToken
 from azure.mgmt.rdbms.mysql_flexibleservers import MySQLManagementClient
 from azure.mgmt.resourcegraph import ResourceGraphClient
 
 class AzureResourceManagementSession:
 
-    def __init__(self, token: str, expires_on: str, base_url: str):
-        self._credentials = BearerTokenCredential(token, expires_on)
+    def __init__(self, token: AccountSecurityToken, base_url: str):
+        self._credentials = BearerTokenCredential(token.token, token.expires_on)
         self._base_url = base_url
 
     def get_mysql_management_client(self, subscription_id: str) -> MySQLManagementClient:
