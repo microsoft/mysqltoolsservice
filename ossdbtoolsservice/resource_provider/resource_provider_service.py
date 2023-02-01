@@ -6,12 +6,12 @@
 from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
 from ossdbtoolsservice.hosting.json_rpc_server import RequestContext
 from ossdbtoolsservice.hosting.service_provider import ServiceProvider
+from ossdbtoolsservice.resource_provider.azure.AccountTokenWrapper import AccountTokenWrapper
 from ossdbtoolsservice.resource_provider.azure.AzureResourceManager import AzureResourceManager
 from ossdbtoolsservice.resource_provider.contracts.account import AccountSecurityToken
 from ossdbtoolsservice.resource_provider.contracts.firewall_rule  import HANDLE_FIREWALL_RULE_REQUEST, CREATE_FIREWALL_RULE_REQUEST, HandleFirewallRuleRequest, HandleFirewallRuleResponse, CreateFirewallRuleRequest, CreateFirewallRuleResponse
 from ossdbtoolsservice.utils.ip import get_public_ip
 from ossdbtoolsservice.utils.constants import MYSQL_PROVIDER_NAME
-import uuid
 
 class ResourceProviderService(object):
     """Service for resource provider"""
@@ -47,11 +47,23 @@ class ResourceProviderService(object):
         request_context.send_response(response)
         
     def _handle_create_firewall_rule_request(self, request_context: RequestContext, params: CreateFirewallRuleRequest):
-        server_name = params.server_name.split(".")[0]
-        tenant_id = params.account.properties.owning_tenant.id
-        token = AccountSecurityToken.from_dict(params.security_token_mappings[tenant_id])
-        base_url = params.account.properties.provider_settings.settings.arm_resource.endpoint
-        session = self._resource_manager.create_session(token, base_url)
-        server_info = self._resource_manager.fetch_server_details(session, server_name)
-        self._resource_manager.create_firewall_rule(session, server_info, params.start_ip_address, params.end_ip_address, params.firewall_rule_name)
-        request_context.send_response(CreateFirewallRuleResponse(success=True))
+        try:
+            server_name = params.server_name.split(".mysql.database.azure.com")[0]
+            account_token_wrapper = self._build_account_token_wrapper(params)
+            session = self._resource_manager.create_session(account_token_wrapper)
+            server_info = self._resource_manager.fetch_server_details(session, server_name)
+            if server_info:
+                self._resource_manager.create_firewall_rule(session, server_info, params.start_ip_address, params.end_ip_address, params.firewall_rule_name)
+                response = CreateFirewallRuleResponse(success=True)
+            else :
+                response = CreateFirewallRuleResponse(success=False, error_message="Server details not found")
+        except Exception as e:
+            response = CreateFirewallRuleResponse(success=False, error_message=str(e))
+        
+        request_context.send_response(response)
+    
+    def _build_account_token_wrapper(self, params: CreateFirewallRuleRequest) -> AccountTokenWrapper:
+        return AccountTokenWrapper(
+            params.account,
+            {tenant_id:AccountSecurityToken.from_dict(params.security_token_mappings[tenant_id]) for tenant_id in params.security_token_mappings}
+        )

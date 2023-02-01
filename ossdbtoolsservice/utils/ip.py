@@ -3,8 +3,9 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-from ipgetter2 import ipgetter1 as ipgetter
+from requests import get
 
+IP_GETTER_URI = "https://api.ipify.org"
 
 def get_public_ip() -> str:
-    return ipgetter.myip()
+    return get(IP_GETTER_URI).content.decode('utf8')

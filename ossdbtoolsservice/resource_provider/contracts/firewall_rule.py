@@ -26,7 +26,7 @@ class CreateFirewallRuleRequest(Serializable):
     
     @classmethod
     def get_child_serializable_types(cls):
-        return {'account': Account, 'security_token_mappings': AccountSecurityToken}
+        return {'account': Account}
 
     def __init__(self):
         self.account: Account = None
@@ -34,7 +34,7 @@ class CreateFirewallRuleRequest(Serializable):
         self.start_ip_address: str = None
         self.end_ip_address: str = None
         self.firewall_rule_name: str = None
-        self.security_token_mappings: Dict[str, AccountSecurityToken] = None
+        self.security_token_mappings = None
 
 class CreateFirewallRuleResponse:
     
