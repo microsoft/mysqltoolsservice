@@ -10,7 +10,10 @@ from ossdbtoolsservice.resource_provider.azure.ServerInfo import ServerInfo
 from azure.mgmt.resourcegraph.models import QueryRequest, QueryResponse
 from azure.mgmt.rdbms.mysql_flexibleservers.models import FirewallRule
 
+from ossdbtoolsservice.resource_provider.azure.poller.arm_pollers import ARMPollingOverrideRetryAfter
+
 GET_SERVERS_RESOURCE_GRAPH_QUERY = "Resources | where type =~ 'Microsoft.DBforMySQL/flexibleServers'| where name == '{}'"
+FIREWALL_POLLER_TIMEOUT = 10
 
 class AzureResourceManager:
     
@@ -37,7 +40,8 @@ class AzureResourceManager:
         client.firewall_rules.begin_create_or_update(
             server.resource_group, 
             server.name, rule_name, 
-            FirewallRule(start_ip_address=start_ip, end_ip_address=end_ip)).result()
+            FirewallRule(start_ip_address=start_ip, end_ip_address=end_ip),
+            polling=ARMPollingOverrideRetryAfter(FIREWALL_POLLER_TIMEOUT)).result()
         
     def _build_server_info(self, server_details_dict: dict) -> ServerInfo:
         return ServerInfo.from_dict(server_details_dict)
