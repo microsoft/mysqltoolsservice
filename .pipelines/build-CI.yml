@@ -43,6 +43,15 @@ steps:
       build/*.zip
       build/*.tar.gz
     targetFolder: '$(Build.ArtifactStagingDirectory)'
+- task: EsrpCodeSigning@2
+  inputs:
+    ConnectedServiceName: 'Database System ESRP Connector'
+    FolderPath: '$(Build.ArtifactStagingDirectory)\build'
+    Pattern: '*.zip, *.tar.gz'
+    signConfigType: 'inlineSignParams'
+    SessionTimeout: '60'
+    MaxConcurrency: '50'
+    MaxRetryAttempts: '5'
 - task: PublishBuildArtifacts@1
   inputs:
     pathToPublish: '$(Build.ArtifactStagingDirectory)'
