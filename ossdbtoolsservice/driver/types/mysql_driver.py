@@ -266,8 +266,8 @@ class MySQLConnection(ServerConnection):
                 if self.autocommit:
                     self._conn.commit()
                 return query_results
-            except mysql.connector.Error as e:
-                self.handle_connection_error(e)
+            except Exception:
+                return False
             finally:
                 cursor.close()
 
@@ -296,8 +296,8 @@ class MySQLConnection(ServerConnection):
                 if self.autocommit:
                     self._conn.commit()
                 return col_names, rows
-            except mysql.connector.Error as e:
-                self.handle_connection_error(e)
+            except Exception:
+                return False
             finally:
                 cursor.close()
 
