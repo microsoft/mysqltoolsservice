@@ -6,7 +6,7 @@
 import unittest
 from unittest import mock
 
-import mysql
+import mysql.connector
 
 from ossdbtoolsservice.query import (ExecutionState, Query, QueryEvents,
                                      QueryExecutionSettings,

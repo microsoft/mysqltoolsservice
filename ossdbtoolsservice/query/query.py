@@ -127,10 +127,9 @@ class Query:
 
         # Run each batch sequentially
         try:
-            current_auto_commit_status = connection.autocommit
             # When Analyze Explain is used we have to disable auto commit
             if self._disable_auto_commit:
-                connection.autocommit = False
+                connection.execute_query('Set autocommit = 0;')
 
             for batch_index, batch in enumerate(self._batches):
                 self._current_batch_index = batch_index
@@ -140,9 +139,8 @@ class Query:
 
                 batch.execute(connection)
         finally:
-            # We can only set autocommit when the connection is open.
-            if connection.open:
-                connection.autocommit = current_auto_commit_status
+            if connection.open and self._disable_auto_commit:
+                connection.execute_query('Set autocommit = 1;')
             self._execution_state = ExecutionState.EXECUTED
 
     def get_subset(self, batch_index: int, start_index: int, end_index: int):

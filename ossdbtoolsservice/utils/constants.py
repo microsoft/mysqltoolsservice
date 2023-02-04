@@ -34,6 +34,8 @@ WORKSPACE_SERVICE_NAME = 'workspace'
 EDIT_DATA_SERVICE_NAME = 'edit_data'
 TASK_SERVICE_NAME = 'tasks'
 
+NEW_DATABASE_SERVICE_NAME = 'new_database'
+
 # ErrorTelemetryViews
 CONNECTION = 'Connection'
 EDIT_DATA = 'Edit Data'
@@ -65,4 +67,3 @@ DISPOSE_QUERY_NO_QUERY = 'Dispose Query No Query'
 DISPOSE_QUERY_REQUEST = 'Dispose Query Request'
 SAVE_QUERY_RESULT = 'Save Query Result'
 SCRIPT_AS_REQUEST = 'Script As Request'
-

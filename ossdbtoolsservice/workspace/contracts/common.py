@@ -89,6 +89,10 @@ class TextDocumentPosition(Serializable):
     @classmethod
     def get_child_serializable_types(cls):
         return {'text_document': TextDocumentIdentifier, 'position': Position}
+    
+    @classmethod
+    def ignore_extra_attributes(cls):
+        return True
 
     @classmethod
     def ignore_extra_attributes(cls):
