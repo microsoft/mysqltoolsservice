@@ -9,12 +9,13 @@ from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
 from ossdbtoolsservice.hosting import RequestContext, ServiceProvider
 from ossdbtoolsservice.metadata.contracts.object_metadata import ObjectMetadata
 from ossdbtoolsservice.scripting.scripter import Scripter
-from ossdbtoolsservice.utils.telemetryUtils import TelemetryParams, TELEMETRY_NOTIFICATION, TELEMETRY_ERROR_EVENT
+from ossdbtoolsservice.utils.telemetryUtils import send_error_telemetry_notification
 from ossdbtoolsservice.scripting.contracts import (
     ScriptAsParameters, ScriptAsResponse, SCRIPTAS_REQUEST
 )
 from ossdbtoolsservice.connection.contracts import ConnectionType
 import ossdbtoolsservice.utils as utils
+from utils import constants
 
 
 class ScriptingService(object):
@@ -61,16 +62,5 @@ class ScriptingService(object):
         except Exception as e:
             if self._service_provider.logger is not None:
                 self._service_provider.logger.exception('Scripting operation failed')
-        
-            request_context.send_notification(
-                method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    TELEMETRY_ERROR_EVENT,
-                    {
-                        'view' : 'Scripting',
-                        'name': 'Script As Request',
-                        'errorCode': str(OssdbErrorConstants.SCRIPTAS_REQUEST_ERROR)
-                    }
-                )
-            )
+            send_error_telemetry_notification(request_context, constants.SCRIPTING, constants.SCRIPT_AS_REQUEST, str(OssdbErrorConstants.SCRIPTAS_REQUEST_ERROR))
             request_context.send_error(message=str(e), data=params, code=OssdbErrorConstants.SCRIPTAS_REQUEST_ERROR)

@@ -16,6 +16,20 @@ class TelemetryParams(Serializable):
             'measures': measures
         }
 
+
+def send_error_telemetry_notification(request_context, view: str, name: str, errorCode: str):
+    request_context.send_notification(
+        method = TELEMETRY_NOTIFICATION,
+        params = TelemetryParams(
+            TELEMETRY_ERROR_EVENT,
+            {
+                'view': view,
+                'name': name,
+                'errorCode': errorCode
+            }
+        )
+    )
+
 # Method name listened by client
 TELEMETRY_NOTIFICATION = "telemetry/mysqlevent"
 

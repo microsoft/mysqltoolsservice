@@ -29,7 +29,7 @@ from ossdbtoolsservice.hosting import RequestContext, ServiceProvider
 from ossdbtoolsservice.utils import constants
 from ossdbtoolsservice.utils.cancellation import CancellationToken
 from ossdbtoolsservice.driver import ServerConnection, ConnectionManager
-from ossdbtoolsservice.utils.telemetryUtils import TelemetryParams, TELEMETRY_NOTIFICATION, TELEMETRY_ERROR_EVENT
+from ossdbtoolsservice.utils.telemetryUtils import send_error_telemetry_notification
 
 class ConnectionInfo(object):
     """Information pertaining to a unique connection instance"""
@@ -203,17 +203,7 @@ class ConnectionService:
         try:
             connection = self.get_connection(params.owner_uri, ConnectionType.DEFAULT, request_context)
         except ValueError as err:
-            request_context.send_notification(
-                method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    TELEMETRY_ERROR_EVENT,
-                    {
-                        'view' : 'Connection',
-                        'name': 'List Databases Connection Value Error',
-                        'errorCode': str(OssdbErrorConstants.LIST_DATABASE_GET_CONNECTION_VALUE_ERROR)
-                    }
-                )
-            )
+            send_error_telemetry_notification(request_context, constants.CONNECTION, constants.LIST_DATABASES_CONNECTION_VALUE_ERROR, str(OssdbErrorConstants.LIST_DATABASE_GET_CONNECTION_VALUE_ERROR))
             request_context.send_error(message=str(err), code=OssdbErrorConstants.LIST_DATABASE_GET_CONNECTION_VALUE_ERROR)
             return
         except OssdbToolsServiceException as err:
@@ -229,17 +219,7 @@ class ConnectionService:
             if self._service_provider is not None and self._service_provider.logger is not None:
                 self._service_provider.logger.exception('Error listing databases')
             
-            request_context.send_notification(
-                method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    TELEMETRY_ERROR_EVENT,
-                    {
-                        'view' : 'Connection',
-                        'name': 'List Databases Error',
-                        'errorCode': str(OssdbErrorConstants.LIST_DATABASE_ERROR)
-                    }
-                )
-            )
+            send_error_telemetry_notification(request_context, constants.CONNECTION, constants.LIST_DATABASES_ERROR, str(OssdbErrorConstants.LIST_DATABASE_ERROR))
             
             request_context.send_error(message=str(err), code=OssdbErrorConstants.LIST_DATABASE_ERROR)
             return
@@ -370,17 +350,7 @@ def _build_connection_response_error(connection_info: ConnectionInfo, connection
     response.messages = errorMessage
     response.error_message = errorMessage
 
-    request_context.send_notification(
-        method = TELEMETRY_NOTIFICATION,
-        params = TelemetryParams(
-            TELEMETRY_ERROR_EVENT,
-            {
-                'view' : 'Connection',
-                'name': 'Build Connection Error',
-                'errorCode': str(err.errorCode)
-            }
-        )
-    )
+    send_error_telemetry_notification(request_context, constants.CONNECTION, constants.BUILD_CONNECTION_ERROR, str(err.errorCode))
 
     return response
 

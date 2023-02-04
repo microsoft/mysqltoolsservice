@@ -38,7 +38,8 @@ from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
 from ossdbtoolsservice.connection.contracts import ConnectRequestParams
 from ossdbtoolsservice.connection.contracts import ConnectionType
 import ossdbtoolsservice.utils as utils
-from ossdbtoolsservice.utils.telemetryUtils import TelemetryParams, TELEMETRY_NOTIFICATION, TELEMETRY_ERROR_EVENT
+from utils import constants
+from ossdbtoolsservice.utils.telemetryUtils import send_error_telemetry_notification
 from ossdbtoolsservice.query.data_storage import (
     FileStreamFactory, SaveAsCsvFileStreamFactory, SaveAsJsonFileStreamFactory, SaveAsExcelFileStreamFactory, SaveAsXmlFileStreamFactory
 )
@@ -190,17 +191,7 @@ class QueryExecutionService(object):
             if self._service_provider.logger is not None:
                 self._service_provider.logger.exception(
                     'Encountered exception while handling query request')  # TODO: Localize
-            request_context.send_notification(
-                    method = TELEMETRY_NOTIFICATION,
-                    params = TelemetryParams(
-                        TELEMETRY_ERROR_EVENT,
-                        {
-                            'view' : 'Query Execution',
-                            'name': 'Query Execution Get Connection',
-                            'errorCode': str(OssdbErrorConstants.EXECUTE_QUERY_GET_CONNECTION_ERROR)
-                        }
-                    )
-                )
+            send_error_telemetry_notification(request_context, constants.QUERY_EXECUTION, constants.EXECUTE_QUERY_GET_CONNECTION, str(OssdbErrorConstants.EXECUTE_QUERY_GET_CONNECTION_ERROR))
             request_context.send_unhandled_error_response(e, OssdbErrorConstants.EXECUTE_QUERY_GET_CONNECTION_ERROR)
             return
 
@@ -241,17 +232,7 @@ class QueryExecutionService(object):
             if self._service_provider.logger is not None:
                 self._service_provider.logger.exception(
                     'Encountered exception while handling query request')  # TODO: Localize
-            request_context.send_notification(
-                    method = TELEMETRY_NOTIFICATION,
-                    params = TelemetryParams(
-                        TELEMETRY_ERROR_EVENT,
-                        {
-                            'view' : 'Query Execution',
-                            'name': 'Query Execution Execute Deploy Get Connection',
-                            'errorCode': str(OssdbErrorConstants.EXECUTE_DEPLOY_GET_CONNECTION_ERROR)
-                        }
-                    )
-                )
+            send_error_telemetry_notification(request_context, constants.QUERY_EXECUTION, constants.EXECUTE_DEPLOY_GET_CONNECTION, str(OssdbErrorConstants.EXECUTE_DEPLOY_GET_CONNECTION_ERROR))
             request_context.send_unhandled_error_response(e, OssdbErrorConstants.EXECUTE_DEPLOY_GET_CONNECTION_ERROR)
             return
 
@@ -299,17 +280,7 @@ class QueryExecutionService(object):
             query_events = QueryEvents(None, None, BatchEvents(_batch_execution_started_callback, _batch_execution_finished_callback))
             self.query_results[params.owner_uri] = Query(params.owner_uri, query_text, execution_settings, query_events)
         elif self.query_results[params.owner_uri].execution_state is ExecutionState.EXECUTING:
-            request_context.send_notification(
-                method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    TELEMETRY_ERROR_EVENT,
-                    {
-                        'view' : 'Query Execution',
-                        'name': 'Another Query Executing',
-                        'errorCode': str(OssdbErrorConstants.ANOTHER_QUERY_EXECUTING_ERROR)
-                    }
-                )
-            )
+            send_error_telemetry_notification(request_context, constants.QUERY_EXECUTION, constants.ANOTHER_QUERY_EXECUTING, str(OssdbErrorConstants.ANOTHER_QUERY_EXECUTING_ERROR))
             request_context.send_error(message='Another query is currently executing.', code=OssdbErrorConstants.ANOTHER_QUERY_EXECUTING_ERROR)  # TODO: Localize
             return
 
@@ -361,33 +332,13 @@ class QueryExecutionService(object):
             if self._service_provider.logger is not None:
                 self._service_provider.logger.exception(str(e))
             
-            request_context.send_notification(
-                    method = TELEMETRY_NOTIFICATION,
-                    params = TelemetryParams(
-                        TELEMETRY_ERROR_EVENT,
-                        {
-                            'view' : 'Query Execution',
-                            'name': 'Query Execution Cancel Query',
-                            'errorCode': str(OssdbErrorConstants.CANCEL_QUERY_ERROR)
-                        }
-                    )
-                )
+            send_error_telemetry_notification(request_context, constants.QUERY_EXECUTION, constants.CANCEL_QUERY, str(OssdbErrorConstants.CANCEL_QUERY_ERROR))
             request_context.send_unhandled_error_response(e, OssdbErrorConstants.CANCEL_QUERY_ERROR)
 
     def _handle_dispose_request(self, request_context: RequestContext, params: QueryDisposeParams):
         try:
             if params.owner_uri not in self.query_results:
-                request_context.send_notification(
-                    method = TELEMETRY_NOTIFICATION,
-                    params = TelemetryParams(
-                        TELEMETRY_ERROR_EVENT,
-                        {
-                            'view' : 'Query Execution',
-                            'name': 'Dispose Query No Query',
-                            'errorCode': str(OssdbErrorConstants.DISPOSE_REQUEST_NO_QUERY_ERROR)
-                        }
-                    )
-                )
+                send_error_telemetry_notification(request_context, constants.QUERY_EXECUTION, constants.DISPOSE_QUERY_NO_QUERY, str(OssdbErrorConstants.DISPOSE_REQUEST_NO_QUERY_ERROR))
                 request_context.send_error(message=NO_QUERY_MESSAGE, code=OssdbErrorConstants.DISPOSE_REQUEST_NO_QUERY_ERROR)  # TODO: Localize
                 return
             # Make sure to cancel the query first if it's not executed.
@@ -398,17 +349,7 @@ class QueryExecutionService(object):
             del self.query_results[params.owner_uri]
             request_context.send_response({})
         except Exception as e:
-            request_context.send_notification(
-                    method = TELEMETRY_NOTIFICATION,
-                    params = TelemetryParams(
-                        TELEMETRY_ERROR_EVENT,
-                        {
-                            'view' : 'Query Execution',
-                            'name': 'Dispose Query Request',
-                            'errorCode': str(OssdbErrorConstants.DISPOSE_QUERY_REQUEST_ERROR)
-                        }
-                    )
-                )
+            send_error_telemetry_notification(request_context, constants.QUERY_EXECUTION, constants.DISPOSE_QUERY_REQUEST, str(OssdbErrorConstants.DISPOSE_QUERY_REQUEST_ERROR))
             request_context.send_unhandled_error_response(e, OssdbErrorConstants.DISPOSE_QUERY_REQUEST_ERROR)
 
     def cancel_query(self, owner_uri: str, request_context: RequestContext):
@@ -533,17 +474,7 @@ class QueryExecutionService(object):
 
         def on_error(reason: str):
             message = 'Failed to save {0}: {1}'.format(ntpath.basename(params.file_path), reason)
-            request_context.send_notification(
-                method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    TELEMETRY_ERROR_EVENT,
-                    {
-                        'view' : 'Query Execution',
-                        'name': 'Save Query Result',
-                        'errorCode': str(OssdbErrorConstants.SAVE_QUERY_RESULT_ERROR)
-                    }
-                )
-            )
+            send_error_telemetry_notification(request_context, constants.QUERY_EXECUTION, constants.SAVE_QUERY_RESULT, str(OssdbErrorConstants.SAVE_QUERY_RESULT_ERROR))
             request_context.send_error(message=message, code=OssdbErrorConstants.SAVE_QUERY_RESULT_ERROR)
 
         try:

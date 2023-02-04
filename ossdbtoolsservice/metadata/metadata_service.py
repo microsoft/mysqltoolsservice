@@ -13,7 +13,7 @@ from ossdbtoolsservice.metadata.contracts import (
     MetadataListParameters, MetadataListResponse, METADATA_LIST_REQUEST, MetadataType, ObjectMetadata)
 from ossdbtoolsservice.utils import constants
 from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
-from ossdbtoolsservice.utils.telemetryUtils import TELEMETRY_NOTIFICATION, TELEMETRY_ERROR_EVENT, TelemetryParams
+from ossdbtoolsservice.utils.telemetryUtils import send_error_telemetry_notification
 
 # Source: https://gist.githubusercontent.com/rakeshsingh/456724716534610caf83/raw/4f9ffba2a1bc365395a70da4d392dae5fd014e3f/Mysql-Show-All-Schema-Objects.sql
 MYSQL_METADATA_QUERY = """
@@ -71,17 +71,7 @@ class MetadataService:
         except Exception as e:
             if self._service_provider.logger is not None:
                 self._service_provider.logger.exception('Unhandled exception while executing the metadata list worker thread')
-            request_context.send_notification(
-                method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    TELEMETRY_ERROR_EVENT,
-                    {
-                        'view' : 'Metadata',
-                        'name': 'Get Metadata Failure',
-                        'errorCode': str(OssdbErrorConstants.GET_METADATA_FAILURE)
-                    }
-                )
-            )
+            send_error_telemetry_notification(request_context, constants.METADATA, constants.GET_METADATA_FAILURE, str(OssdbErrorConstants.GET_METADATA_FAILURE))
             request_context.send_error(message='Unhandled exception while listing metadata: ' + str(e), code=OssdbErrorConstants.GET_METADATA_FAILURE)  # TODO: Localize
 
     def _list_metadata(self, owner_uri: str, request_context: RequestContext) -> List[ObjectMetadata]:

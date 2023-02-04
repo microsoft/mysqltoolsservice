@@ -27,7 +27,7 @@ from ossdbtoolsservice.query_execution.query_execution_service import ExecuteReq
 from ossdbtoolsservice.connection import ConnectionService  # noqa
 from ossdbtoolsservice.query_execution import QueryExecutionService  # noqa
 import ossdbtoolsservice.utils as utils
-from ossdbtoolsservice.utils.telemetryUtils import TELEMETRY_NOTIFICATION, TELEMETRY_ERROR_EVENT, TelemetryParams
+from ossdbtoolsservice.utils.telemetryUtils import send_error_telemetry_notification
 from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
 
 
@@ -60,17 +60,7 @@ class EditDataService(object):
         self._active_sessions[params.owner_uri] = session
 
         if params.query_string is not None:
-            request_context.send_notification(
-                method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    TELEMETRY_ERROR_EVENT,
-                    {
-                        'view' : 'Edit Data',
-                        'name': 'Edit Data Custom Query',
-                        'errorCode': str(OssdbErrorConstants.EDIT_DATA_CUSTOM_QUERY_UNSUPPORTED_ERROR)
-                    }
-                )
-            )
+            send_error_telemetry_notification(request_context, constants.EDIT_DATA, constants.EDIT_DATA_CUSTOM_QUERY, str(OssdbErrorConstants.EDIT_DATA_CUSTOM_QUERY_UNSUPPORTED_ERROR))
             request_context.send_error(message='Edit data with custom query is not supported currently.', code=OssdbErrorConstants.EDIT_DATA_CUSTOM_QUERY_UNSUPPORTED_ERROR)
             return
 
@@ -144,17 +134,7 @@ class EditDataService(object):
             request_context.send_response(EditCommitResponse())
 
         def on_failure(error: str):
-            request_context.send_notification(
-                method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    TELEMETRY_ERROR_EVENT,
-                    {
-                        'view' : 'Edit Data',
-                        'name': 'Edit Data Commit',
-                        'errorCode': str(OssdbErrorConstants.EDIT_DATA_COMMIT_FAILURE)
-                    }
-                )
-            )
+            send_error_telemetry_notification(request_context, constants.EDIT_DATA, constants.EDIT_DATA_COMMIT, str(OssdbErrorConstants.EDIT_DATA_COMMIT_FAILURE))
             request_context.send_error(message=error, code=OssdbErrorConstants.EDIT_DATA_COMMIT_FAILURE)
 
         edit_session = self._get_active_session(params.owner_uri)
@@ -166,17 +146,7 @@ class EditDataService(object):
             self._active_sessions.pop(params.owner_uri)
 
         except KeyError:
-            request_context.send_notification(
-                method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    TELEMETRY_ERROR_EVENT,
-                    {
-                        'view' : 'Edit Data',
-                        'name': 'Edit Data Session Not Found',
-                        'errorCode': str(OssdbErrorConstants.EDIT_DATA_SESSION_NOT_FOUND)
-                    }
-                )
-            )
+            send_error_telemetry_notification(request_context, constants.EDIT_DATA, constants.EDIT_DATA_SESSION_NOT_FOUND, str(OssdbErrorConstants.EDIT_DATA_SESSION_NOT_FOUND))
             request_context.send_error(message='Edit data session not found', code=OssdbErrorConstants.EDIT_DATA_SESSION_NOT_FOUND)
 
         request_context.send_response(DisposeResponse())
@@ -188,17 +158,7 @@ class EditDataService(object):
             result = session_operation(edit_session)
             request_context.send_response(result)
         except Exception as ex:
-            request_context.send_notification(
-                method = TELEMETRY_NOTIFICATION,
-                params = TelemetryParams(
-                    TELEMETRY_ERROR_EVENT,
-                    {
-                        'view' : 'Edit Data',
-                        'name': 'Edit Data Session Operation',
-                        'errorCode': str(OssdbErrorConstants.EDIT_DATA_SESSION_OPERATION_FAILURE)
-                    }
-                )
-            )
+            send_error_telemetry_notification(request_context, constants.EDIT_DATA, constants.EDIT_DATA_SESSION_OPERATION, str(OssdbErrorConstants.EDIT_DATA_SESSION_OPERATION_FAILURE))
             request_context.send_error(message=str(ex), code=OssdbErrorConstants.EDIT_DATA_SESSION_OPERATION_FAILURE)
             self._logger.error(str(ex))
 
