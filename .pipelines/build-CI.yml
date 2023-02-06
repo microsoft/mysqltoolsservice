@@ -36,6 +36,47 @@ steps:
   inputs:
     filePath: $(buildScript)
     arguments: $(buildScriptArgs)
+- task: EsrpCodeSigning@2
+  inputs:
+    ConnectedServiceName: 'Database System ESRP Connector'
+    FolderPath: '$(Build.SourcesDirectory)/build'
+    Pattern: '*.zip, *.tar.gz'
+    signConfigType: 'inlineSignParams'
+    inlineOperation: |
+      [
+        {
+          "keyCode": "CP-230072",
+          "operationSetCode": "SigntoolSign",
+          "parameters": [
+            {
+              "parameterName": "OpusName",
+              "parameterValue": "MySQLToolsservice"
+            },
+            {
+              "parameterName": "OpusInfo",
+              "parameterValue": "https://github.com/Microsoft/mysqltoolsservice"
+            },
+            {
+              "parameterName": "PageHash",
+              "parameterValue": "/NPH"
+            },
+            {
+              "parameterName": "FileDigest",
+              "parameterValue": "/fd sha256"
+            },
+            {
+              "parameterName": "TimeStamp",
+              "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+            }
+          ],
+          "toolName": "signtool.exe",
+          "toolVersion": "6.2.9304.0"
+        }
+      ]
+    SessionTimeout: '60'
+    MaxConcurrency: '50'
+    MaxRetryAttempts: '5'
+    VerboseLogin: true
 - task: CopyFiles@2
   inputs:
     sourceFolder: '$(Build.SourcesDirectory)'
@@ -43,15 +84,6 @@ steps:
       build/*.zip
       build/*.tar.gz
     targetFolder: '$(Build.ArtifactStagingDirectory)'
-- task: EsrpCodeSigning@2
-  inputs:
-    ConnectedServiceName: 'Database System ESRP Connector'
-    FolderPath: '$(Build.ArtifactStagingDirectory)\build'
-    Pattern: '*.zip, *.tar.gz'
-    signConfigType: 'inlineSignParams'
-    SessionTimeout: '60'
-    MaxConcurrency: '50'
-    MaxRetryAttempts: '5'
 - task: PublishBuildArtifacts@1
   inputs:
     pathToPublish: '$(Build.ArtifactStagingDirectory)'
