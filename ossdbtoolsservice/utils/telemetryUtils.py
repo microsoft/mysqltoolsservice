@@ -17,7 +17,7 @@ class TelemetryParams(Serializable):
         }
 
 
-def send_error_telemetry_notification(request_context, view: str, name: str, errorCode: str):
+def send_error_telemetry_notification(request_context, view: str, name: str, errorCode: int):
     request_context.send_notification(
         method = TELEMETRY_NOTIFICATION,
         params = TelemetryParams(
@@ -25,7 +25,7 @@ def send_error_telemetry_notification(request_context, view: str, name: str, err
             {
                 'view': view,
                 'name': name,
-                'errorCode': errorCode
+                'errorCode': str(errorCode)
             }
         )
     )

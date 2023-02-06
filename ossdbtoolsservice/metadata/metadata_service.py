@@ -71,7 +71,7 @@ class MetadataService:
         except Exception as e:
             if self._service_provider.logger is not None:
                 self._service_provider.logger.exception('Unhandled exception while executing the metadata list worker thread')
-            send_error_telemetry_notification(request_context, OssdbErrorConstants.METADATA, OssdbErrorConstants.GET_METADATA_FAILURE, str(OssdbErrorConstants.GET_METADATA_FAILURE))
+            send_error_telemetry_notification(request_context, OssdbErrorConstants.METADATA, OssdbErrorConstants.GET_METADATA_FAILURE, OssdbErrorConstants.GET_METADATA_FAILURE)
             request_context.send_error(message='Unhandled exception while listing metadata: ' + str(e), code=OssdbErrorConstants.GET_METADATA_FAILURE)  # TODO: Localize
 
     def _list_metadata(self, owner_uri: str, request_context: RequestContext) -> List[ObjectMetadata]:

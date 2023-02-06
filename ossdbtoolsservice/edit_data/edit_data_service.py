@@ -60,7 +60,7 @@ class EditDataService(object):
         self._active_sessions[params.owner_uri] = session
 
         if params.query_string is not None:
-            send_error_telemetry_notification(request_context, OssdbErrorConstants.EDIT_DATA, OssdbErrorConstants.EDIT_DATA_CUSTOM_QUERY, str(OssdbErrorConstants.EDIT_DATA_CUSTOM_QUERY_UNSUPPORTED_ERROR))
+            send_error_telemetry_notification(request_context, OssdbErrorConstants.EDIT_DATA, OssdbErrorConstants.EDIT_DATA_CUSTOM_QUERY, OssdbErrorConstants.EDIT_DATA_CUSTOM_QUERY_UNSUPPORTED_ERROR)
             request_context.send_error(message='Edit data with custom query is not supported currently.', code=OssdbErrorConstants.EDIT_DATA_CUSTOM_QUERY_UNSUPPORTED_ERROR)
             return
 
@@ -134,7 +134,7 @@ class EditDataService(object):
             request_context.send_response(EditCommitResponse())
 
         def on_failure(error: str):
-            send_error_telemetry_notification(request_context, OssdbErrorConstants.EDIT_DATA, OssdbErrorConstants.EDIT_DATA_COMMIT, str(OssdbErrorConstants.EDIT_DATA_COMMIT_FAILURE))
+            send_error_telemetry_notification(request_context, OssdbErrorConstants.EDIT_DATA, OssdbErrorConstants.EDIT_DATA_COMMIT, OssdbErrorConstants.EDIT_DATA_COMMIT_FAILURE)
             request_context.send_error(message=error, code=OssdbErrorConstants.EDIT_DATA_COMMIT_FAILURE)
 
         edit_session = self._get_active_session(params.owner_uri)
@@ -146,7 +146,7 @@ class EditDataService(object):
             self._active_sessions.pop(params.owner_uri)
 
         except KeyError:
-            send_error_telemetry_notification(request_context, OssdbErrorConstants.EDIT_DATA, OssdbErrorConstants.EDIT_DATA_SESSION_NOT_FOUND, str(OssdbErrorConstants.EDIT_DATA_SESSION_NOT_FOUND))
+            send_error_telemetry_notification(request_context, OssdbErrorConstants.EDIT_DATA, OssdbErrorConstants.EDIT_DATA_SESSION_NOT_FOUND, OssdbErrorConstants.EDIT_DATA_SESSION_NOT_FOUND)
             request_context.send_error(message='Edit data session not found', code=OssdbErrorConstants.EDIT_DATA_SESSION_NOT_FOUND)
 
         request_context.send_response(DisposeResponse())
@@ -158,7 +158,7 @@ class EditDataService(object):
             result = session_operation(edit_session)
             request_context.send_response(result)
         except Exception as ex:
-            send_error_telemetry_notification(request_context, OssdbErrorConstants.EDIT_DATA, OssdbErrorConstants.EDIT_DATA_SESSION_OPERATION, str(OssdbErrorConstants.EDIT_DATA_SESSION_OPERATION_FAILURE))
+            send_error_telemetry_notification(request_context, OssdbErrorConstants.EDIT_DATA, OssdbErrorConstants.EDIT_DATA_SESSION_OPERATION, OssdbErrorConstants.EDIT_DATA_SESSION_OPERATION_FAILURE)
             request_context.send_error(message=str(ex), code=OssdbErrorConstants.EDIT_DATA_SESSION_OPERATION_FAILURE)
             self._logger.error(str(ex))
 

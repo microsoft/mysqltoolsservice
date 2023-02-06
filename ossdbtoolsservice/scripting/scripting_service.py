@@ -62,5 +62,5 @@ class ScriptingService(object):
         except Exception as e:
             if self._service_provider.logger is not None:
                 self._service_provider.logger.exception('Scripting operation failed')
-            send_error_telemetry_notification(request_context, OssdbErrorConstants.SCRIPTING, OssdbErrorConstants.SCRIPT_AS_REQUEST, str(OssdbErrorConstants.SCRIPTAS_REQUEST_ERROR))
+            send_error_telemetry_notification(request_context, OssdbErrorConstants.SCRIPTING, OssdbErrorConstants.SCRIPT_AS_REQUEST, OssdbErrorConstants.SCRIPTAS_REQUEST_ERROR)
             request_context.send_error(message=str(e), data=params, code=OssdbErrorConstants.SCRIPTAS_REQUEST_ERROR)
