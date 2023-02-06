@@ -270,7 +270,7 @@ class JSONRPCServer:
             # Make sure we got a handler for the request
             if handler is None:
                 # TODO: Localize?
-                send_error_telemetry_notification(request_context, constants.JSON_RPC, constants.UNSUPPORTED_REQUEST, str(OssdbErrorConstants.UNSUPPORTED_REQUEST_METHOD))
+                send_error_telemetry_notification(request_context, OssdbErrorConstants.JSON_RPC, OssdbErrorConstants.UNSUPPORTED_REQUEST, str(OssdbErrorConstants.UNSUPPORTED_REQUEST_METHOD))
                 request_context.send_error(message=f'Requested method is unsupported: {message.message_method}', code=OssdbErrorConstants.UNSUPPORTED_REQUEST_METHOD)
                 if self._logger is not None:
                     self._logger.warn('Requested method is unsupported: %s', message.message_method)
@@ -289,7 +289,7 @@ class JSONRPCServer:
                 error_message = f'Unhandled exception while handling request method {message.message_method}: "{e}"'  # TODO: Localize
                 if self._logger is not None:
                     self._logger.exception(error_message)
-                send_error_telemetry_notification(request_context, constants.JSON_RPC, constants.REQUEST_METHOD_PROCESSING, str(OssdbErrorConstants.REQUEST_METHOD_PROCESSING_UNHANDLED_EXCEPTION))
+                send_error_telemetry_notification(request_context, OssdbErrorConstants.JSON_RPC, OssdbErrorConstants.REQUEST_METHOD_PROCESSING, str(OssdbErrorConstants.REQUEST_METHOD_PROCESSING_UNHANDLED_EXCEPTION))
                 request_context.send_error(message=error_message, code=OssdbErrorConstants.REQUEST_METHOD_PROCESSING_UNHANDLED_EXCEPTION)
         elif message.message_type is JSONRPCMessageType.Notification:
             if self._logger is not None:

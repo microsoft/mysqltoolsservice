@@ -110,7 +110,7 @@ class ObjectExplorerService(object):
             message = f'Failed to create OE session: {str(e)}'
             if self._service_provider.logger is not None:
                 self._service_provider.logger.error(message)
-            send_error_telemetry_notification(request_context, constants.OBJECT_EXPLORER, constants.OBJECT_EXPLORER_CREATE_SESSION, str(OssdbErrorConstants.OBJECT_EXPLORER_CREATE_SESSION_ERROR))
+            send_error_telemetry_notification(request_context, OssdbErrorConstants.OBJECT_EXPLORER, OssdbErrorConstants.OBJECT_EXPLORER_CREATE_SESSION, str(OssdbErrorConstants.OBJECT_EXPLORER_CREATE_SESSION_ERROR))
             request_context.send_error(message=message, code=OssdbErrorConstants.OBJECT_EXPLORER_CREATE_SESSION_ERROR)
             return
 
@@ -147,7 +147,7 @@ class ObjectExplorerService(object):
             message = f'Failed to close OE session: {str(e)}'   # TODO: Localize
             if self._service_provider.logger is not None:
                 self._service_provider.logger.error(message)
-            send_error_telemetry_notification(request_context, constants.OBJECT_EXPLORER, constants.OBJECT_EXPLORER_CLOSE_SESSION, str(OssdbErrorConstants.OBJECT_EXPLORER_CLOSE_SESSION_ERROR))
+            send_error_telemetry_notification(request_context, OssdbErrorConstants.OBJECT_EXPLORER, OssdbErrorConstants.OBJECT_EXPLORER_CLOSE_SESSION, str(OssdbErrorConstants.OBJECT_EXPLORER_CLOSE_SESSION_ERROR))
             request_context.send_error(message=message, code=OssdbErrorConstants.OBJECT_EXPLORER_CLOSE_SESSION_ERROR)
 
     def _handle_refresh_request(self, request_context: RequestContext, params: ExpandParameters) -> None:
@@ -249,7 +249,7 @@ class ObjectExplorerService(object):
             message = f'Failed to expand node: {str(e)}'    # TODO: Localize
             if self._service_provider.logger is not None:
                 self._service_provider.logger.error(message)
-            send_error_telemetry_notification(request_context, constants.OBJECT_EXPLORER, constants.OBJECT_EXPLORER_EXPAND_NODE, str(OssdbErrorConstants.OBJECT_EXPLORER_EXPAND_NODE_ERROR))
+            send_error_telemetry_notification(request_context, OssdbErrorConstants.OBJECT_EXPLORER, OssdbErrorConstants.OBJECT_EXPLORER_EXPAND_NODE, str(OssdbErrorConstants.OBJECT_EXPLORER_EXPAND_NODE_ERROR))
             request_context.send_error(message=message, code=OssdbErrorConstants.OBJECT_EXPLORER_EXPAND_NODE_ERROR)
             return
 
