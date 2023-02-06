@@ -12,6 +12,9 @@ from ossdbtoolsservice.resource_provider.contracts.account import AccountSecurit
 from ossdbtoolsservice.resource_provider.contracts.firewall_rule  import HANDLE_FIREWALL_RULE_REQUEST, CREATE_FIREWALL_RULE_REQUEST, HandleFirewallRuleRequest, HandleFirewallRuleResponse, CreateFirewallRuleRequest, CreateFirewallRuleResponse
 from ossdbtoolsservice.utils.ip import get_public_ip
 from ossdbtoolsservice.utils.constants import MYSQL_PROVIDER_NAME
+from ossdbtoolsservice.utils.telemetryUtils import send_error_telemetry_notification
+
+DEFAULT_PUBLIC_IP = "0.0.0.0"
 
 class ResourceProviderService(object):
     """Service for resource provider"""
@@ -35,15 +38,12 @@ class ResourceProviderService(object):
             self._service_provider.logger.info('Resource provider service successfully initialized')
     
     def _handle_handle_firewall_rule_request(self, request_context: RequestContext, params: HandleFirewallRuleRequest):
-        try:
-            if params.connection_type_id and params.connection_type_id == MYSQL_PROVIDER_NAME and params.error_code and params.error_code == OssdbErrorConstants.MYSQL_FLEX_IP_NOT_WHITELISTED_CODE:
-                ipaddr = get_public_ip()
-                response = HandleFirewallRuleResponse(handle=True, ip_address=ipaddr)
-            else:
-                response = HandleFirewallRuleResponse(handle=False)
-        except Exception as e:
-            response = HandleFirewallRuleResponse(handle=False, error_message=str(e))
-                
+        if params.connection_type_id and params.connection_type_id == MYSQL_PROVIDER_NAME and params.error_code and params.error_code == OssdbErrorConstants.MYSQL_FLEX_IP_NOT_WHITELISTED_CODE:
+            ipaddr = self._get_public_ip(request_context)
+            response = HandleFirewallRuleResponse(handle=True, ip_address=ipaddr)
+        else:
+            response = HandleFirewallRuleResponse(handle=False)
+            
         request_context.send_response(response)
         
     def _handle_create_firewall_rule_request(self, request_context: RequestContext, params: CreateFirewallRuleRequest):
@@ -56,9 +56,12 @@ class ResourceProviderService(object):
                 self._resource_manager.create_firewall_rule(session, server_info, params.start_ip_address, params.end_ip_address, params.firewall_rule_name)
                 response = CreateFirewallRuleResponse(success=True)
             else :
-                response = CreateFirewallRuleResponse(success=False, error_message="Server details not found")
+                response = CreateFirewallRuleResponse(success=False, error_message=OssdbErrorConstants.FIREWALL_RULE_SERVER_DETAILS_NOT_FOUND)
+                send_error_telemetry_notification(request_context, OssdbErrorConstants.FIREWALL_RULE, OssdbErrorConstants.FIREWALL_RULE_SERVER_DETAILS_NOT_FOUND, OssdbErrorConstants.FIREWALL_RULE_SERVER_DETAILS_NOT_FOUND_ERROR_CODE)
+            session.close()
         except Exception as e:
             response = CreateFirewallRuleResponse(success=False, error_message=str(e))
+            send_error_telemetry_notification(request_context, OssdbErrorConstants.FIREWALL_RULE, OssdbErrorConstants.FIREWALL_RULE_ERROR, OssdbErrorConstants.FIREWALL_RULE_ERROR_CODE)
         
         request_context.send_response(response)
     
@@ -67,3 +70,10 @@ class ResourceProviderService(object):
             params.account,
             {tenant_id:AccountSecurityToken.from_dict(params.security_token_mappings[tenant_id]) for tenant_id in params.security_token_mappings}
         )
+    
+    def _get_public_ip(self, request_context: RequestContext):
+        try:
+            return get_public_ip()
+        except:
+            send_error_telemetry_notification(request_context, OssdbErrorConstants.FIREWALL_RULE, OssdbErrorConstants.PUBLIC_IP_FETCH_ERROR, OssdbErrorConstants.PUBLIC_IP_FETCH_ERROR_CODE)
+            return DEFAULT_PUBLIC_IP
