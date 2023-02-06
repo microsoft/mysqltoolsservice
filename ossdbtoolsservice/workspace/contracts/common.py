@@ -94,10 +94,14 @@ class TextDocumentPosition(Serializable):
     def ignore_extra_attributes(cls):
         return True
 
+    @classmethod
+    def ignore_extra_attributes(cls):
+        return True
+
     def __init__(self):
         self.text_document: TextDocumentIdentifier = None
         self.position: Position = None
-
+    
 
 class Location(Serializable):
     """

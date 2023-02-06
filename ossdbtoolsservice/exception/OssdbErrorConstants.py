@@ -50,3 +50,36 @@ class OssdbErrorConstants():
     MYSQL_FLEX_IP_NOT_WHITELISTED_SUGGESTIONS = "Verify the firewall settings on your Azure Database for MySQL flexible server to allow connections from your client address are configured correctly. \n For more details on firewall configuration, see https://learn.microsoft.com/azure/mysql/flexible-server/how-to-manage-firewall-portal"
     MYSQL_FLEX_INCORRECT_CREDENTIALS_SUGGESTIONS = "Check that the provided connection details and credentials (Server name, User name, Password, SSL cert(if provided)) are correct."
     MYSQL_SSL_CA_REQUIRED_FOR_VERIFY_MODES_SUGGESTIONS = "To connect using these SSL modes, navigate to \'Advanced Properties\' tab and configure the SSL CA certificate. \nFor more details on SSL modes, see https://dev.mysql.com/doc/refman/8.0/en/using-encrypted-connections.html"
+
+
+    # ErrorTelemetryViews
+    CONNECTION = 'Connection'
+    EDIT_DATA = 'Edit Data'
+    JSON_RPC = 'Json Rpc'
+    METADATA = 'Metadata'
+    OBJECT_EXPLORER = 'Object Explorer'
+    QUERY_EXECUTION = 'Query Execution'
+    SCRIPTING = 'Scripting'
+
+    # ErrorTelmetryNames
+    LIST_DATABASES_CONNECTION_VALUE_ERROR = 'List Databases Connection Value Error'
+    LIST_DATABASES_ERROR = 'List Databases Error'
+    BUILD_CONNECTION_ERROR = 'Build Connection Error'
+    EDIT_DATA_CUSTOM_QUERY = 'Edit Data Custom Query Unsupported'
+    EDIT_DATA_COMMIT = 'Edit Data Commit Failure'
+    EDIT_DATA_SESSION_NOT_FOUND = 'Edit Data Session Not Found'
+    EDIT_DATA_SESSION_OPERATION = 'Edit Data Session Operation Failure'
+    UNSUPPORTED_REQUEST = 'Unsupported Request Method'
+    REQUEST_METHOD_PROCESSING = 'Request Method Processing Unhandled Exception'
+    GET_METADATA_FAILURE = 'Get Metadata Failure'
+    OBJECT_EXPLORER_CREATE_SESSION = 'Object Explorer Create Session Error'
+    OBJECT_EXPLORER_CLOSE_SESSION = 'Object Explorer Close Session Error'
+    OBJECT_EXPLORER_EXPAND_NODE = 'Object Explorer Expand Node Error'
+    EXECUTE_QUERY_GET_CONNECTION = 'Execute Query Get Connection Error'
+    EXECUTE_DEPLOY_GET_CONNECTION = 'Execute Deploy Get Connection Error'
+    ANOTHER_QUERY_EXECUTING = 'Another Query Executing Error'
+    CANCEL_QUERY = 'Cancel Query'
+    DISPOSE_QUERY_NO_QUERY = 'Dispose Query No Query Error'
+    DISPOSE_QUERY_REQUEST = 'Dispose Query Request Error'
+    SAVE_QUERY_RESULT = 'Save Query Result Error'
+    SCRIPT_AS_REQUEST = 'Script As Request Error'

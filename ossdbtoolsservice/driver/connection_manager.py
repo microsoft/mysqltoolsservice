@@ -18,7 +18,7 @@ class ConnectionManager:
         MARIADB_PROVIDER_NAME: MySQLConnection
     }
 
-    def __init__(self, provider: str, config: Configuration, conn_options: {}):
+    def __init__(self, provider: str, config: Configuration, conn_options: dict()):
 
         # Get info about this connection's provider
         self._provider = provider

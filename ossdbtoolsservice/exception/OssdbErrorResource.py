@@ -27,6 +27,14 @@ class OssdbErrorResource():
     def userErrMsg(self) -> str:
         return self._userErrMsg
 
+    @property
+    def errcode(self) -> str:
+        return self._errcode
+    
+    @property
+    def errmsg(self) -> str:
+        return self._errmsg
+
     def _buildUserErrMsg(self) -> str:
         usermsg = "Error Message : " + self._errmsg
         if self._errcode:

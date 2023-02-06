@@ -29,7 +29,7 @@ from ossdbtoolsservice.hosting import RequestContext, ServiceProvider
 from ossdbtoolsservice.utils import constants
 from ossdbtoolsservice.utils.cancellation import CancellationToken
 from ossdbtoolsservice.driver import ServerConnection, ConnectionManager
-
+from ossdbtoolsservice.utils.telemetryUtils import send_error_telemetry_notification
 
 class ConnectionInfo(object):
     """Information pertaining to a unique connection instance"""
@@ -92,7 +92,7 @@ class ConnectionService:
         self._service_provider.server.set_request_handler(GET_CONNECTION_STRING_REQUEST, self.handle_get_connection_string_request)
 
     # PUBLIC METHODS #######################################################
-    def connect(self, params: ConnectRequestParams) -> Optional[ConnectionCompleteParams]:
+    def connect(self, params: ConnectRequestParams, request_context: RequestContext = None) -> Optional[ConnectionCompleteParams]:
         """
         Open a connection using the given connection information.
 
@@ -128,7 +128,7 @@ class ConnectionService:
             # Get connection to DB server using the provided connection params
             connection: ServerConnection = ConnectionManager(provider_name, config, params.connection.options).get_connection()
         except Exception as err:
-            return _build_connection_response_error(connection_info, params.type, err)
+            return _build_connection_response_error(connection_info, params.type, request_context, err)
         finally:
             # Remove this thread's cancellation token if needed
             with self._cancellation_lock:
@@ -143,7 +143,7 @@ class ConnectionService:
 
         # The connection was not canceled, so add the connection and respond
         connection_info.add_connection(params.type, connection)
-        self._notify_on_connect(params.type, connection_info)
+        self._notify_on_connect(params.type, connection_info, request_context)
         return _build_connection_response(connection_info, params.type)
 
     def disconnect(self, owner_uri: str, connection_type: Optional[ConnectionType]) -> bool:
@@ -159,7 +159,7 @@ class ConnectionService:
         connection_info = self.owner_to_connection_map.get(owner_uri)
         return self._close_connections(connection_info, connection_type) if connection_info is not None else False
 
-    def get_connection(self, owner_uri: str, connection_type: ConnectionType) -> Optional[ServerConnection]:
+    def get_connection(self, owner_uri: str, connection_type: ConnectionType, request_context: RequestContext = None) -> Optional[ServerConnection]:
         """
         Get a connection for the given owner URI and connection type
 
@@ -170,7 +170,7 @@ class ConnectionService:
             raise ValueError('No connection associated with given owner URI')
 
         if not connection_info.has_connection(connection_type):
-            self.connect(ConnectRequestParams(connection_info.details, owner_uri, connection_type))
+            self.connect(ConnectRequestParams(connection_info.details, owner_uri, connection_type), request_context)
         return connection_info.get_connection(connection_type)
 
     def register_on_connect_callback(self, task: Callable[[ConnectionInfo], None]) -> None:
@@ -201,11 +201,13 @@ class ConnectionService:
         """List all databases on the server that the given URI has a connection to"""
         connection = None
         try:
-            connection = self.get_connection(params.owner_uri, ConnectionType.DEFAULT)
+            connection = self.get_connection(params.owner_uri, ConnectionType.DEFAULT, request_context)
         except ValueError as err:
+            send_error_telemetry_notification(request_context, OssdbErrorConstants.CONNECTION, OssdbErrorConstants.LIST_DATABASES_CONNECTION_VALUE_ERROR, OssdbErrorConstants.LIST_DATABASE_GET_CONNECTION_VALUE_ERROR)
             request_context.send_error(message=str(err), code=OssdbErrorConstants.LIST_DATABASE_GET_CONNECTION_VALUE_ERROR)
             return
         except OssdbToolsServiceException as err:
+
             request_context.send_error(message=str(err), data=None, code=err.errorCode)
             return
 
@@ -216,6 +218,9 @@ class ConnectionService:
         except Exception as err:
             if self._service_provider is not None and self._service_provider.logger is not None:
                 self._service_provider.logger.exception('Error listing databases')
+            
+            send_error_telemetry_notification(request_context, OssdbErrorConstants.CONNECTION, OssdbErrorConstants.LIST_DATABASES_ERROR, OssdbErrorConstants.LIST_DATABASE_ERROR)
+            
             request_context.send_error(message=str(err), code=OssdbErrorConstants.LIST_DATABASE_ERROR)
             return
 
@@ -256,20 +261,20 @@ class ConnectionService:
     # IMPLEMENTATION DETAILS ###############################################
     def _connect_and_respond(self, request_context: RequestContext, params: ConnectRequestParams) -> None:
         """Open a connection and fire the connection complete notification"""
-        response = self.connect(params)
+        response = self.connect(params, request_context)
 
         # Send the connection complete response unless the connection was canceled
         if response is not None:
             request_context.send_notification(CONNECTION_COMPLETE_METHOD, response)
 
-    def _notify_on_connect(self, conn_type: ConnectionType, info: ConnectionInfo) -> None:
+    def _notify_on_connect(self, conn_type: ConnectionType, info: ConnectionInfo, request_context: RequestContext = None) -> None:
         """
         Sends a notification to any listeners that a new connection has been established.
         Only sent if the connection is a new, defalt connection
         """
         if (conn_type == ConnectionType.DEFAULT):
             for callback in self._on_connect_callbacks:
-                callback(info)
+                callback(info, request_context)
 
     @staticmethod
     def _close_connections(connection_info: ConnectionInfo, connection_type=None):
@@ -319,8 +324,7 @@ def _build_connection_response(connection_info: ConnectionInfo, connection_type:
     return response
 
 
-def _build_connection_response_error(connection_info: ConnectionInfo, connection_type: ConnectionType, err)\
-        -> ConnectionCompleteParams:
+def _build_connection_response_error(connection_info: ConnectionInfo, connection_type: ConnectionType, request_context: RequestContext, err) -> ConnectionCompleteParams:
     """Build a connection complete response object"""
     response: ConnectionCompleteParams = ConnectionCompleteParams()
     response.owner_uri = connection_info.owner_uri
@@ -345,6 +349,8 @@ def _build_connection_response_error(connection_info: ConnectionInfo, connection
 
     response.messages = errorMessage
     response.error_message = errorMessage
+
+    send_error_telemetry_notification(request_context, OssdbErrorConstants.CONNECTION, OssdbErrorConstants.BUILD_CONNECTION_ERROR, err.errorCode)
 
     return response
 

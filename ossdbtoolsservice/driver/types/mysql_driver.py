@@ -250,7 +250,7 @@ class MySQLConnection(ServerConnection):
                     else:
                         query_results = cursor.fetchone()
                     return query_results
-            except Exception as e:
+            except Exception:
                 return False
             finally:
                 cursor.close()
