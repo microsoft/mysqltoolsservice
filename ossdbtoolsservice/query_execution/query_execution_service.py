@@ -318,8 +318,8 @@ class QueryExecutionService(object):
 
             # Only need to do additional work to cancel the query
             # if it's currently running
-            # if query.execution_state is ExecutionState.EXECUTING:
-            #     self.cancel_query(params.owner_uri, request_context)
+            if query.execution_state is ExecutionState.EXECUTING:
+                self.cancel_query(params.owner_uri, request_context)
             request_context.send_response(QueryCancelResult())
 
         except Exception as e:
