@@ -189,8 +189,7 @@ class QueryExecutionService(object):
             conn = self._get_connection(params.owner_uri, ConnectionType.QUERY, request_context)
         except Exception as e:
             if self._service_provider.logger is not None:
-                self._service_provider.logger.exception(
-                    'Encountered exception while handling query request')  # TODO: Localize
+                self._service_provider.logger.exception('Encountered exception while handling query request')  # TODO: Localize
             send_error_telemetry_notification(request_context, OssdbErrorConstants.QUERY_EXECUTION, OssdbErrorConstants.EXECUTE_QUERY_GET_CONNECTION, OssdbErrorConstants.EXECUTE_QUERY_GET_CONNECTION_ERROR)
             request_context.send_unhandled_error_response(e, OssdbErrorConstants.EXECUTE_QUERY_GET_CONNECTION_ERROR)
             return
@@ -315,17 +314,12 @@ class QueryExecutionService(object):
                 request_context.send_response(QueryCancelResult(NO_QUERY_MESSAGE))  # TODO: Localize
                 return
 
-            # Only cancel the query if we're in a cancellable state
-            if query.execution_state is ExecutionState.EXECUTED:
-                request_context.send_response(QueryCancelResult('Query already executed'))  # TODO: Localize
-                return
-
-            query.is_canceled = True
+            query.cancel(request_context)
 
             # Only need to do additional work to cancel the query
             # if it's currently running
-            if query.execution_state is ExecutionState.EXECUTING:
-                self.cancel_query(params.owner_uri, request_context)
+            # if query.execution_state is ExecutionState.EXECUTING:
+            #     self.cancel_query(params.owner_uri, request_context)
             request_context.send_response(QueryCancelResult())
 
         except Exception as e:

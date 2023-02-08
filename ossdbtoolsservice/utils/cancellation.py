@@ -10,8 +10,12 @@ class CancellationToken:
     """Token used to indicate if an operation has been canceled"""
 
     def __init__(self):
-        self.canceled = False
+        self._canceled = False
 
     def cancel(self):
         """Mark the cancellation token as canceled"""
-        self.canceled = True
+        self._canceled = True
+    
+    def hasBeenCancelled(self):
+        """Return the state of cancelled property"""
+        return self._canceled

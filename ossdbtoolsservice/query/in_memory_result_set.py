@@ -9,7 +9,7 @@ from ossdbtoolsservice.query.result_set import ResultSet, ResultSetEvents
 from ossdbtoolsservice.query.contracts import DbColumn, DbCellValue, ResultSetSubset, SaveResultsRequestParams  # noqa
 from ossdbtoolsservice.query.column_info import get_columns_info
 from ossdbtoolsservice.query.data_storage import FileStreamFactory
-
+from ossdbtoolsservice.utils.cancellation import CancellationToken
 
 class InMemoryResultSet(ResultSet):
 
@@ -37,7 +37,9 @@ class InMemoryResultSet(ResultSet):
         row = self.rows[row_id]
         return [DbCellValue(cell_value, cell_value is None, cell_value, row_id) for cell_value in list(row)]
 
-    def read_result_to_end(self, cursor):
+    def read_result_to_end(self, cursor, cancellationToken: CancellationToken):
+        if cancellationToken.hasBeenCancelled():
+            raise Exception("Query Cancelled!")
         rows = cursor.fetchall()
         self.rows.extend(rows or [])
 
@@ -45,10 +47,12 @@ class InMemoryResultSet(ResultSet):
 
         self._has_been_read = True
 
-    def do_save_as(self, file_path: str, row_start_index: int, row_end_index: int, file_factory: FileStreamFactory, on_success, on_failure) -> None:
+    def do_save_as(self, file_path: str, row_start_index: int, row_end_index: int, file_factory: FileStreamFactory, on_success, on_failure, cancellationToken: CancellationToken) -> None:
 
         with file_factory.get_writer(file_path) as writer:
             for index in range(row_start_index, row_end_index):
+                if cancellationToken.hasBeenCancelled():
+                   raise Exception("Query Cancelled") 
                 row = self.get_row(index)
                 writer.write_row(row, self.columns_info)
 

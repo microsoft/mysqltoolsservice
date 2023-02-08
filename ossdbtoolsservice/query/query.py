@@ -11,6 +11,9 @@ from ossdbtoolsservice.driver import ServerConnection
 from ossdbtoolsservice.query import Batch, BatchEvents, create_batch, ResultSetStorageType
 from ossdbtoolsservice.query.contracts import SaveResultsRequestParams, SelectionData
 from ossdbtoolsservice.query.data_storage import FileStreamFactory
+from ossdbtoolsservice.query_execution.contracts import QueryCancelResult
+from ossdbtoolsservice.exception.OssdbToolsServiceException import QueryOperationCancelledException
+from ossdbtoolsservice.utils.cancellation import CancellationToken
 
 
 class QueryEvents:
@@ -59,8 +62,7 @@ class Query:
         self._current_batch_index = 0
         self._batches: List[Batch] = []
         self._execution_plan_options = query_execution_settings.execution_plan_options
-
-        self.is_canceled = False
+        self._cancellationToken: CancellationToken = CancellationToken()
 
         # Initialize the batches
         statements = sqlparse.split(query_text)
@@ -123,21 +125,24 @@ class Query:
         if self._execution_state is ExecutionState.EXECUTED:
             raise RuntimeError('Cannot execute a query multiple times')
 
-        self._execution_state = ExecutionState.EXECUTING
-
         # Run each batch sequentially
         try:
+            if self._cancellationToken.hasBeenCancelled():
+                raise QueryOperationCancelledException()
+        
+            self._execution_state = ExecutionState.EXECUTING
+
             # When Analyze Explain is used we have to disable auto commit
             if self._disable_auto_commit:
                 connection.execute_query('Set autocommit = 0;')
 
             for batch_index, batch in enumerate(self._batches):
                 self._current_batch_index = batch_index
+                batch.execute(connection, self._cancellationToken)
 
-                if self.is_canceled:
-                    break
-
-                batch.execute(connection)
+        except Exception as e:
+            if isinstance(e, QueryOperationCancelledException):
+                raise Exception("Query OPeration cancelled!")
         finally:
             if connection.open and self._disable_auto_commit:
                 connection.execute_query('Set autocommit = 1;')
@@ -153,7 +158,13 @@ class Query:
         if params.batch_index < 0 or params.batch_index >= len(self.batches):
             raise IndexError('Batch index cannot be less than 0 or greater than the number of batches')
 
-        self.batches[params.batch_index].save_as(params, file_factory, on_success, on_failure)
+        self.batches[params.batch_index].save_as(params, file_factory, on_success, on_failure, self._cancellationToken)
+
+    def cancel(self, request_context):
+        if self._execution_state == ExecutionState.EXECUTED:
+            request_context.send_response(QueryCancelResult('Query already executed'))  # TODO: Localize
+            return
+        self._cancellationToken.cancel()
 
 
 def compute_selection_data_for_batches(batches: List[str], full_text: str) -> List[SelectionData]:
