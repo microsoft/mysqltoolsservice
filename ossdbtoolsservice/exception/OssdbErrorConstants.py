@@ -83,3 +83,6 @@ class OssdbErrorConstants():
     DISPOSE_QUERY_REQUEST = 'Dispose Query Request Error'
     SAVE_QUERY_RESULT = 'Save Query Result Error'
     SCRIPT_AS_REQUEST = 'Script As Request Error'
+
+    # Other Messages
+    OPERATION_CANCELED_EXCEPTION = 'The operation was canceled.'

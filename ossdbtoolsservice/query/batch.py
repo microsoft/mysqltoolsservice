@@ -18,6 +18,7 @@ from ossdbtoolsservice.query.file_storage_result_set import FileStorageResultSet
 from ossdbtoolsservice.query.in_memory_result_set import InMemoryResultSet
 from ossdbtoolsservice.query.data_storage import FileStreamFactory
 from ossdbtoolsservice.utils.cancellation import CancellationToken
+from ossdbtoolsservice.exception.OperationCanceledException import OperationCanceledException
 
 
 class ResultSetStorageType(Enum):
@@ -138,7 +139,7 @@ class Batch:
     def doExecute(self, conn: ServerConnection, cancellationToken: CancellationToken):
         try:
             if cancellationToken.hasBeenCancelled():
-                raise Exception("Query has been cancelled!")
+                raise OperationCanceledException()
             
             cursor = self.get_cursor(conn)
             cursor.execute(self.batch_text)

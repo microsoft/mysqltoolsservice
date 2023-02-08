@@ -10,6 +10,7 @@ from ossdbtoolsservice.query.data_storage import service_buffer_file_stream as f
 from ossdbtoolsservice.query.contracts import DbColumn, DbCellValue, ResultSetSubset, SaveResultsRequestParams  # noqa
 import ossdbtoolsservice.utils as utils
 from utils.cancellation import CancellationToken
+from ossdbtoolsservice.exception.OperationCanceledException import OperationCanceledException
 
 
 class FileStorageResultSet(ResultSet):
@@ -87,19 +88,17 @@ class FileStorageResultSet(ResultSet):
 
             while storage_data_reader.read_row():
                 if cancellationToken.hasBeenCancelled():
-                    raise Exception("Query Cancelled!")
+                    raise OperationCanceledException()
                 self._file_offsets.append(self._total_bytes_written)
                 self._total_bytes_written += writer.write_row(storage_data_reader)
 
             self.columns_info = storage_data_reader.columns_info
 
-    def do_save_as(self, file_path: str, row_start_index: int, row_end_index: int, file_factory: FileStreamFactory, on_success, on_failure, cancellationToken: CancellationToken) -> None:
+    def do_save_as(self, file_path: str, row_start_index: int, row_end_index: int, file_factory: FileStreamFactory, on_success, on_failure) -> None:
 
         with file_factory.get_writer(file_path) as writer:
             with file_factory.get_reader(self._output_file_name) as reader:
                 for row_index in range(row_start_index, row_end_index):
-                    if cancellationToken.hasBeenCancelled():
-                        raise Exception("Query Cancelled!")
                     row = reader.read_row(self._file_offsets[row_index], row_index, self.columns_info)
                     writer.write_row(row, self.columns_info)
 

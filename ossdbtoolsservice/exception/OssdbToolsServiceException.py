@@ -24,13 +24,3 @@ class OssdbToolsServiceException(Exception):
     @property
     def errorMsg(self) -> str:
         return self._errMsg
-
-
-class QueryOperationCancelledException(Exception):
-
-    def __init__(self):
-        self._msg = "Query Operation has been cancelled"
-        super().__init__()
-
-    
-

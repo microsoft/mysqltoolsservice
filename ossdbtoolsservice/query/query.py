@@ -12,7 +12,7 @@ from ossdbtoolsservice.query import Batch, BatchEvents, create_batch, ResultSetS
 from ossdbtoolsservice.query.contracts import SaveResultsRequestParams, SelectionData
 from ossdbtoolsservice.query.data_storage import FileStreamFactory
 from ossdbtoolsservice.query_execution.contracts import QueryCancelResult
-from ossdbtoolsservice.exception.OssdbToolsServiceException import QueryOperationCancelledException
+from ossdbtoolsservice.exception.OperationCanceledException import OperationCanceledException
 from ossdbtoolsservice.utils.cancellation import CancellationToken
 
 
@@ -128,7 +128,7 @@ class Query:
         # Run each batch sequentially
         try:
             if self._cancellationToken.hasBeenCancelled():
-                raise QueryOperationCancelledException()
+                raise OperationCanceledException()
         
             self._execution_state = ExecutionState.EXECUTING
 
@@ -139,10 +139,6 @@ class Query:
             for batch_index, batch in enumerate(self._batches):
                 self._current_batch_index = batch_index
                 batch.execute(connection, self._cancellationToken)
-
-        except Exception as e:
-            if isinstance(e, QueryOperationCancelledException):
-                raise Exception("Query OPeration cancelled!")
         finally:
             if connection.open and self._disable_auto_commit:
                 connection.execute_query('Set autocommit = 1;')

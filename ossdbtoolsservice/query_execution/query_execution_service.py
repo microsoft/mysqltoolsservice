@@ -35,6 +35,7 @@ from ossdbtoolsservice.query_execution.contracts import (
 
 from ossdbtoolsservice.driver import ServerConnection
 from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
+from ossdbtoolsservice.exception.OperationCanceledException import OperationCanceledException
 from ossdbtoolsservice.connection.contracts import ConnectRequestParams
 from ossdbtoolsservice.connection.contracts import ConnectionType
 import ossdbtoolsservice.utils as utils
@@ -437,6 +438,9 @@ class QueryExecutionService(object):
         elif isinstance(e, RuntimeError):
             error_message = str(e)
 
+        elif isinstance(e, OperationCanceledException):
+            error_message = str(e)
+        
         else:
             error_message = 'Unhandled exception while executing query: {}'.format(str(e))  # TODO: Localize
             if self._service_provider.logger is not None:
