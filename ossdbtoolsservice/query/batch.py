@@ -163,12 +163,12 @@ class Batch:
     def get_subset(self, start_index: int, end_index: int):
         return self._result_set.get_subset(start_index, end_index)
 
-    def save_as(self, params: SaveResultsRequestParams, file_factory: FileStreamFactory, on_success, on_failure, cancellationToken: CancellationToken) -> None:
+    def save_as(self, params: SaveResultsRequestParams, file_factory: FileStreamFactory, on_success, on_failure) -> None:
 
         if params.result_set_index != 0:
             raise IndexError('Result set index should be always 0')
 
-        self._result_set.save_as(params, file_factory, on_success, on_failure, cancellationToken)
+        self._result_set.save_as(params, file_factory, on_success, on_failure)
 
 
 class SelectBatch(Batch):

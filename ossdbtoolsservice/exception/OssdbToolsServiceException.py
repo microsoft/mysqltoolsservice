@@ -24,3 +24,4 @@ class OssdbToolsServiceException(Exception):
     @property
     def errorMsg(self) -> str:
         return self._errMsg
+    
