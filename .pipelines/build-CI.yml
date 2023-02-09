@@ -1,0 +1,49 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- rishabhkumar/pipeline-setup-no-code-sign
+
+strategy:
+  matrix:
+    linux:
+      imageName: 'ubuntu-18.04'
+      buildScript: 'scripts/build-linux.sh'
+      buildScriptArgs: ''
+    ubuntu22:
+      imageName: 'ubuntu-22.04'
+      buildScript: 'scripts/build-linux.sh'
+      buildScriptArgs: 'ubuntu22'
+    mac:
+      imageName: 'macOS-latest'
+      buildScript: 'scripts/build-mac.sh'
+      buildScriptArgs: ''
+    windows:
+      imageName: 'windows-latest'
+      buildScript: 'scripts/build.sh'
+      buildScriptArgs: ''
+
+pool:
+  vmImage: $(imageName)
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.10'
+- task: Bash@3
+  inputs:
+    filePath: $(buildScript)
+    arguments: $(buildScriptArgs)
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: '$(Build.SourcesDirectory)'
+    contents: |
+      build/*.zip
+      build/*.tar.gz
+    targetFolder: '$(Build.ArtifactStagingDirectory)'
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: build
