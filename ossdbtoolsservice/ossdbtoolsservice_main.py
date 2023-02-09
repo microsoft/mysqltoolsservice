@@ -19,6 +19,7 @@ from ossdbtoolsservice.metadata import MetadataService
 from ossdbtoolsservice.new_database.new_database_service import NewDatabaseService
 from ossdbtoolsservice.object_explorer import ObjectExplorerService
 from ossdbtoolsservice.query_execution import QueryExecutionService
+from ossdbtoolsservice.resource_provider.resource_provider_service import ResourceProviderService
 from ossdbtoolsservice.scripting.scripting_service import ScriptingService
 from ossdbtoolsservice.edit_data.edit_data_service import EditDataService
 from ossdbtoolsservice.tasks import TaskService
@@ -44,7 +45,8 @@ def _create_server(input_stream, output_stream, server_logger, provider):
         constants.WORKSPACE_SERVICE_NAME: WorkspaceService,
         constants.EDIT_DATA_SERVICE_NAME: EditDataService,
         constants.TASK_SERVICE_NAME: TaskService,
-        constants.NEW_DATABASE_SERVICE_NAME: NewDatabaseService
+        constants.NEW_DATABASE_SERVICE_NAME: NewDatabaseService,
+        constants.RESOURCE_PROVIDER_SERVICE_NAME: ResourceProviderService
     }
     service_box = ServiceProvider(rpc_server, services, provider, server_logger)
     service_box.initialize()
