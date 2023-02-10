@@ -5,7 +5,7 @@
 
 """Module containing utilities for cancelling requests"""
 
-
+# TODO check for thread safety
 class CancellationToken:
     """Token used to indicate if an operation has been canceled"""
 

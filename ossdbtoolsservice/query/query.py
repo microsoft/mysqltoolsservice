@@ -62,6 +62,8 @@ class Query:
         self._current_batch_index = 0
         self._batches: List[Batch] = []
         self._execution_plan_options = query_execution_settings.execution_plan_options
+
+        # TODO Check if cancelation token can be moved to Query Execution Service
         self._cancellation_token: CancellationToken = CancellationToken()
 
         # Initialize the batches
