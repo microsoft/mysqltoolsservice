@@ -6,6 +6,7 @@
 from typing import List
 
 from ossdbtoolsservice.hosting import IncomingMessageConfiguration
+from ossdbtoolsservice.new_database.contracts.charset_info import CharsetInfo
 from ossdbtoolsservice.serialization import Serializable
 
 
@@ -17,8 +18,7 @@ class GetCharsetsRequest(Serializable):
 
 class GetCharsetsResponse:
 
-    def __init__(self, charsets: List[str]):
+    def __init__(self, charsets: List[CharsetInfo]):
         self.charsets = charsets
-
 
 GET_CHARSETS_REQUEST = IncomingMessageConfiguration('mysqlnewdatabase/charsets', GetCharsetsRequest)

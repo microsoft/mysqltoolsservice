@@ -9,6 +9,7 @@ from ossdbtoolsservice.driver.types.driver import ServerConnection
 from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
 from ossdbtoolsservice.hosting.json_rpc_server import RequestContext
 from ossdbtoolsservice.hosting.service_provider import ServiceProvider
+from ossdbtoolsservice.new_database.contracts.charset_info import CharsetInfo
 from ossdbtoolsservice.new_database.contracts.create_database_request import CREATE_DATABASE_REQUEST, CreateDatabaseRequest
 from ossdbtoolsservice.new_database.contracts.get_charsets_request import GET_CHARSETS_REQUEST, GetCharsetsRequest, GetCharsetsResponse
 from ossdbtoolsservice.new_database.contracts.get_collations_request import GET_COLLATIONS_REQUEST, GetCollationsRequest, GetCollationsResponse
@@ -18,7 +19,7 @@ from ossdbtoolsservice.query.query import Query, QueryEvents, QueryExecutionSett
 import ossdbtoolsservice.utils.constants as constants
 
 
-GET_CHARSETS_QUERY = "SELECT CHARACTER_SET_NAME from INFORMATION_SCHEMA.CHARACTER_SETS ;"
+GET_CHARSETS_QUERY = "SELECT CHARACTER_SET_NAME, DEFAULT_COLLATE_NAME from INFORMATION_SCHEMA.CHARACTER_SETS ;"
 GET_COLLATIONS_QUERY = "SELECT COLLATION_NAME FROM INFORMATION_SCHEMA.COLLATIONS WHERE CHARACTER_SET_NAME = '{}'"
 CREATE_DATABASE_QUERY = "CREATE DATABASE `{}`"
 CHARSET_SUFFIX_DATABASE_QUERY = " CHARACTER SET = '{}'"
@@ -88,7 +89,7 @@ class NewDatabaseService(object):
         result_set_subset: ResultSetSubset = query.get_subset(0, 0, query.batches[0].row_count)
         charsets = []
         for row in result_set_subset.rows :
-            charsets.append(row[0].display_value)
+            charsets.append(CharsetInfo(row[0].display_value, row[1].display_value))
         return GetCharsetsResponse(charsets)
     
     def _build_get_collations_response(self, query: Query) -> GetCollationsResponse :
