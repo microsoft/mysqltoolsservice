@@ -62,7 +62,7 @@ class Query:
         self._current_batch_index = 0
         self._batches: List[Batch] = []
         self._execution_plan_options = query_execution_settings.execution_plan_options
-        self._cancellationToken: CancellationToken = CancellationToken()
+        self._cancellation_token: CancellationToken = CancellationToken()
 
         # Initialize the batches
         statements = sqlparse.split(query_text)
@@ -127,7 +127,7 @@ class Query:
 
         # Run each batch sequentially
         try:
-            if self._cancellationToken.hasBeenCancelled():
+            if self._cancellation_token.canceled:
                 raise OperationCanceledException()
         
             self._execution_state = ExecutionState.EXECUTING
@@ -138,7 +138,7 @@ class Query:
 
             for batch_index, batch in enumerate(self._batches):
                 self._current_batch_index = batch_index
-                batch.execute(connection, self._cancellationToken)
+                batch.execute(connection, self._cancellation_token)
         finally:
             if connection.open and self._disable_auto_commit:
                 connection.execute_query('Set autocommit = 1;')
@@ -154,13 +154,13 @@ class Query:
         if params.batch_index < 0 or params.batch_index >= len(self.batches):
             raise IndexError('Batch index cannot be less than 0 or greater than the number of batches')
 
-        self.batches[params.batch_index].save_as(params, file_factory, on_success, on_failure, self._cancellationToken)
+        self.batches[params.batch_index].save_as(params, file_factory, on_success, on_failure)
 
     def cancel(self, request_context):
         if self._execution_state == ExecutionState.EXECUTED:
             request_context.send_response(QueryCancelResult('Query already executed'))  # TODO: Localize
             return
-        self._cancellationToken.cancel()
+        self._cancellation_token.cancel()
 
 
 def compute_selection_data_for_batches(batches: List[str], full_text: str) -> List[SelectionData]:

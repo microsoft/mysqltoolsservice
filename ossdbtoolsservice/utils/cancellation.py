@@ -12,10 +12,10 @@ class CancellationToken:
     def __init__(self):
         self._canceled = False
 
+    @property
+    def canceled(self) -> bool:
+        return self._canceled
+    
     def cancel(self):
         """Mark the cancellation token as canceled"""
         self._canceled = True
-    
-    def hasBeenCancelled(self):
-        """Return the state of cancelled property"""
-        return self._canceled

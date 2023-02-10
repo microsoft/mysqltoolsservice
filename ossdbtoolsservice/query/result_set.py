@@ -67,7 +67,7 @@ class ResultSet(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def read_result_to_end(self, cursor, cancellationToken):
+    def read_result_to_end(self, cursor, cancellation_token):
         pass
 
     @abstractmethod

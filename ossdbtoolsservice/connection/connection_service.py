@@ -137,7 +137,7 @@ class ConnectionService:
                     del self._cancellation_map[cancellation_key]
 
         # If the connection was canceled, close it
-        if cancellation_token.hasBeenCancelled():
+        if cancellation_token.canceled:
             connection.close()
             return None
 

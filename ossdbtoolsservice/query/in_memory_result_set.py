@@ -38,8 +38,8 @@ class InMemoryResultSet(ResultSet):
         row = self.rows[row_id]
         return [DbCellValue(cell_value, cell_value is None, cell_value, row_id) for cell_value in list(row)]
 
-    def read_result_to_end(self, cursor, cancellationToken: CancellationToken):
-        if cancellationToken.hasBeenCancelled():
+    def read_result_to_end(self, cursor, cancellation_token: CancellationToken):
+        if cancellation_token.canceled:
             raise OperationCanceledException()
         rows = cursor.fetchall()
         self.rows.extend(rows or [])

@@ -109,7 +109,7 @@ class Batch:
     def get_cursor(self, connection: ServerConnection):
         return connection.cursor()
 
-    def execute(self, conn: ServerConnection, cancellationToken: CancellationToken) -> None:
+    def execute(self, conn: ServerConnection, cancellation_token: CancellationToken) -> None:
         """
         Execute the batch using a cursor retrieved from the given connection
 
@@ -125,7 +125,7 @@ class Batch:
             self._batch_events._on_execution_started(self)
         
         try:
-            self.doExecute(conn, cancellationToken)
+            self.doExecute(conn, cancellation_token)
         except Exception as e:
             self._has_error = True
             raise e
@@ -136,14 +136,14 @@ class Batch:
             if self._batch_events and self._batch_events._on_execution_completed:
                 self._batch_events._on_execution_completed(self)
 
-    def doExecute(self, conn: ServerConnection, cancellationToken: CancellationToken):
+    def doExecute(self, conn: ServerConnection, cancellation_token: CancellationToken):
         try:
-            if cancellationToken.hasBeenCancelled():
+            if cancellation_token.canceled:
                 raise OperationCanceledException()
             
             cursor = self.get_cursor(conn)
             cursor.execute(self.batch_text)
-            self.after_execute(cursor, cancellationToken)
+            self.after_execute(cursor, cancellation_token)
         finally:
             # We are doing this because when the execute fails for named cursors
             # cursor is not activated on the server which results in failure on close
@@ -151,13 +151,13 @@ class Batch:
             if cursor and cursor.rowcount != -1 and cursor.rowcount is not None:
                 cursor.close()
 
-    def after_execute(self, cursor, cancellationToken: CancellationToken) -> None:
+    def after_execute(self, cursor, cancellation_token: CancellationToken) -> None:
         if cursor.description is not None:
-            self.create_result_set(cursor, cancellationToken)
+            self.create_result_set(cursor, cancellation_token)
 
-    def create_result_set(self, cursor, cancellationToken: CancellationToken):
+    def create_result_set(self, cursor, cancellation_token: CancellationToken):
         result_set = create_result_set(self._storage_type, 0, self.id)
-        result_set.read_result_to_end(cursor, cancellationToken)
+        result_set.read_result_to_end(cursor, cancellation_token)
         self._result_set = result_set
 
     def get_subset(self, start_index: int, end_index: int):
@@ -183,8 +183,8 @@ class SelectBatch(Batch):
         # and we explicitly close it we are good
         return connection.cursor(name=cursor_name, withhold=True)
 
-    def after_execute(self, cursor, cancellationToken: CancellationToken) -> None:
-        super().create_result_set(cursor, cancellationToken)
+    def after_execute(self, cursor, cancellation_token: CancellationToken) -> None:
+        super().create_result_set(cursor, cancellation_token)
 
 
 def create_result_set(storage_type: ResultSetStorageType, result_set_id: int, batch_id: int) -> ResultSet:
