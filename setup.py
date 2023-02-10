@@ -5,7 +5,7 @@ from cx_Freeze import setup, Executable
 buildOptions = dict(
     build_exe = "build/mysqltoolsservice",
     packages = ['asyncio', 'jinja2', 'inflection', 'sqlparse',
-                'prompt_toolkit', 'xlsxwriter', 'nose2', 'parameterized', 'coverage', 'autopep8', 'flake8', 'debugpy', '_pydev_runfiles', 'mysql', 'azure'],
+                'prompt_toolkit', 'xlsxwriter', 'nose2', 'parameterized', 'coverage', 'autopep8', 'flake8', 'debugpy', '_pydev_runfiles', 'mysql'],
     excludes = [],
     include_files = [],
     replace_paths = [("*", "")]
