@@ -38,7 +38,6 @@ from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
 from ossdbtoolsservice.connection.contracts import ConnectRequestParams
 from ossdbtoolsservice.connection.contracts import ConnectionType
 import ossdbtoolsservice.utils as utils
-from utils import constants
 from ossdbtoolsservice.utils.telemetryUtils import send_error_telemetry_notification
 from ossdbtoolsservice.query.data_storage import (
     FileStreamFactory, SaveAsCsvFileStreamFactory, SaveAsJsonFileStreamFactory, SaveAsExcelFileStreamFactory, SaveAsXmlFileStreamFactory
