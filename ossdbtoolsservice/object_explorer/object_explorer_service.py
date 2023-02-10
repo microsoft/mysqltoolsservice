@@ -22,7 +22,6 @@ from ossdbtoolsservice.object_explorer.contracts import (
 from ossdbtoolsservice.object_explorer.session import ObjectExplorerSession
 from ossdbtoolsservice.metadata.contracts import ObjectMetadata
 import ossdbtoolsservice.utils as utils
-from utils import constants
 from ossdbtoolsservice.utils.telemetryUtils import send_error_telemetry_notification
 from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
 
