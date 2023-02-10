@@ -13,7 +13,7 @@ python setup.py build
 
 # Compress mysqltoolsservice folder
 Set-Location $curloc/build
-Compress-Archive -LiteralPath mysqltoolsservice -DestinationPath mysqltoolsservice-win-x64
+Compress-Archive -LiteralPath mysqltoolsservice -DestinationPath mysqltoolsservice-win-x64 -Force
 
 
 # Restore the old PYTHONPATH and move back to the original directory
