@@ -35,6 +35,7 @@ from ossdbtoolsservice.query_execution.contracts import (
 
 from ossdbtoolsservice.driver import ServerConnection
 from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
+from ossdbtoolsservice.exception.OperationCanceledException import OperationCanceledException
 from ossdbtoolsservice.connection.contracts import ConnectRequestParams
 from ossdbtoolsservice.connection.contracts import ConnectionType
 import ossdbtoolsservice.utils as utils
@@ -188,8 +189,7 @@ class QueryExecutionService(object):
             conn = self._get_connection(params.owner_uri, ConnectionType.QUERY, request_context)
         except Exception as e:
             if self._service_provider.logger is not None:
-                self._service_provider.logger.exception(
-                    'Encountered exception while handling query request')  # TODO: Localize
+                self._service_provider.logger.exception('Encountered exception while handling query request')  # TODO: Localize
             send_error_telemetry_notification(request_context, OssdbErrorConstants.QUERY_EXECUTION, OssdbErrorConstants.EXECUTE_QUERY_GET_CONNECTION, OssdbErrorConstants.EXECUTE_QUERY_GET_CONNECTION_ERROR)
             request_context.send_unhandled_error_response(e, OssdbErrorConstants.EXECUTE_QUERY_GET_CONNECTION_ERROR)
             return
@@ -314,12 +314,7 @@ class QueryExecutionService(object):
                 request_context.send_response(QueryCancelResult(NO_QUERY_MESSAGE))  # TODO: Localize
                 return
 
-            # Only cancel the query if we're in a cancellable state
-            if query.execution_state is ExecutionState.EXECUTED:
-                request_context.send_response(QueryCancelResult('Query already executed'))  # TODO: Localize
-                return
-
-            query.is_canceled = True
+            query.cancel(request_context)
 
             # Only need to do additional work to cancel the query
             # if it's currently running
@@ -439,9 +434,9 @@ class QueryExecutionService(object):
             # get_error_message may return None so ensure error_message is str type
             error_message = str(worker_args.connection.get_error_message(e))
 
-        elif isinstance(e, RuntimeError):
+        elif isinstance(e, (RuntimeError, OperationCanceledException)):
             error_message = str(e)
-
+        
         else:
             error_message = 'Unhandled exception while executing query: {}'.format(str(e))  # TODO: Localize
             if self._service_provider.logger is not None:

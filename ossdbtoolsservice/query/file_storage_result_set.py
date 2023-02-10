@@ -9,6 +9,8 @@ from ossdbtoolsservice.query.result_set import ResultSet, ResultSetEvents
 from ossdbtoolsservice.query.data_storage import service_buffer_file_stream as file_stream, FileStreamFactory, StorageDataReader
 from ossdbtoolsservice.query.contracts import DbColumn, DbCellValue, ResultSetSubset, SaveResultsRequestParams  # noqa
 import ossdbtoolsservice.utils as utils
+from utils.cancellation import CancellationToken
+from ossdbtoolsservice.exception.OperationCanceledException import OperationCanceledException
 
 
 class FileStorageResultSet(ResultSet):
@@ -76,7 +78,7 @@ class FileStorageResultSet(ResultSet):
         with file_stream.get_reader(self._output_file_name) as reader:
             return reader.read_row(self._file_offsets[row_id], row_id, self.columns_info)
 
-    def read_result_to_end(self, cursor):
+    def read_result_to_end(self, cursor, cancellation_token: CancellationToken):
         utils.validate.is_not_none('cursor', cursor)
 
         self._has_been_read = True
@@ -85,6 +87,8 @@ class FileStorageResultSet(ResultSet):
         with file_stream.get_writer(self._output_file_name) as writer:
 
             while storage_data_reader.read_row():
+                if cancellation_token.canceled:
+                    raise OperationCanceledException()
                 self._file_offsets.append(self._total_bytes_written)
                 self._total_bytes_written += writer.write_row(storage_data_reader)
 

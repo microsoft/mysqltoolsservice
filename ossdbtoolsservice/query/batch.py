@@ -17,6 +17,8 @@ from ossdbtoolsservice.query.result_set import ResultSet  # noqa
 from ossdbtoolsservice.query.file_storage_result_set import FileStorageResultSet
 from ossdbtoolsservice.query.in_memory_result_set import InMemoryResultSet
 from ossdbtoolsservice.query.data_storage import FileStreamFactory
+from ossdbtoolsservice.utils.cancellation import CancellationToken
+from ossdbtoolsservice.exception.OperationCanceledException import OperationCanceledException
 
 
 class ResultSetStorageType(Enum):
@@ -107,43 +109,55 @@ class Batch:
     def get_cursor(self, connection: ServerConnection):
         return connection.cursor()
 
-    def execute(self, conn: ServerConnection) -> None:
+    def execute(self, conn: ServerConnection, cancellation_token: CancellationToken) -> None:
         """
         Execute the batch using a cursor retrieved from the given connection
 
         :raises DatabaseError: if an error is encountered while running the batch's query
         """
+
+        if self.has_executed:
+            raise Exception("Batch has already executed!")
+        
         self._execution_start_time = datetime.now()
 
         if self._batch_events and self._batch_events._on_execution_started:
             self._batch_events._on_execution_started(self)
-
-        cursor = self.get_cursor(conn)
+        
         try:
-            cursor.execute(self.batch_text)
-            self.after_execute(cursor)
-        except conn.database_error as error:
+            self.doExecute(conn, cancellation_token)
+        except Exception as e:
             self._has_error = True
-            raise error
+            raise e
         finally:
-            # We are doing this because when the execute fails for named cursors
-            # cursor is not activated on the server which results in failure on close
-            # Hence we are checking if the cursor was really executed for us to close it
-            if cursor and cursor.rowcount != -1 and cursor.rowcount is not None:
-                cursor.close()
             self._has_executed = True
             self._execution_end_time = datetime.now()
 
             if self._batch_events and self._batch_events._on_execution_completed:
                 self._batch_events._on_execution_completed(self)
 
-    def after_execute(self, cursor) -> None:
-        if cursor.description is not None:
-            self.create_result_set(cursor)
+    def doExecute(self, conn: ServerConnection, cancellation_token: CancellationToken):
+        try:
+            if cancellation_token.canceled:
+                raise OperationCanceledException()
+            
+            cursor = self.get_cursor(conn)
+            cursor.execute(self.batch_text)
+            self.after_execute(cursor, cancellation_token)
+        finally:
+            # We are doing this because when the execute fails for named cursors
+            # cursor is not activated on the server which results in failure on close
+            # Hence we are checking if the cursor was really executed for us to close it
+            if cursor and cursor.rowcount != -1 and cursor.rowcount is not None:
+                cursor.close()
 
-    def create_result_set(self, cursor):
+    def after_execute(self, cursor, cancellation_token: CancellationToken) -> None:
+        if cursor.description is not None:
+            self.create_result_set(cursor, cancellation_token)
+
+    def create_result_set(self, cursor, cancellation_token: CancellationToken):
         result_set = create_result_set(self._storage_type, 0, self.id)
-        result_set.read_result_to_end(cursor)
+        result_set.read_result_to_end(cursor, cancellation_token)
         self._result_set = result_set
 
     def get_subset(self, start_index: int, end_index: int):
@@ -169,8 +183,8 @@ class SelectBatch(Batch):
         # and we explicitly close it we are good
         return connection.cursor(name=cursor_name, withhold=True)
 
-    def after_execute(self, cursor) -> None:
-        super().create_result_set(cursor)
+    def after_execute(self, cursor, cancellation_token: CancellationToken) -> None:
+        super().create_result_set(cursor, cancellation_token)
 
 
 def create_result_set(storage_type: ResultSetStorageType, result_set_id: int, batch_id: int) -> ResultSet:

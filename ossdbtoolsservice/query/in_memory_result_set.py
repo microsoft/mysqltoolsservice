@@ -9,7 +9,8 @@ from ossdbtoolsservice.query.result_set import ResultSet, ResultSetEvents
 from ossdbtoolsservice.query.contracts import DbColumn, DbCellValue, ResultSetSubset, SaveResultsRequestParams  # noqa
 from ossdbtoolsservice.query.column_info import get_columns_info
 from ossdbtoolsservice.query.data_storage import FileStreamFactory
-
+from ossdbtoolsservice.utils.cancellation import CancellationToken
+from ossdbtoolsservice.exception.OperationCanceledException import OperationCanceledException
 
 class InMemoryResultSet(ResultSet):
 
@@ -37,7 +38,9 @@ class InMemoryResultSet(ResultSet):
         row = self.rows[row_id]
         return [DbCellValue(cell_value, cell_value is None, cell_value, row_id) for cell_value in list(row)]
 
-    def read_result_to_end(self, cursor):
+    def read_result_to_end(self, cursor, cancellation_token: CancellationToken):
+        if cancellation_token.canceled:
+            raise OperationCanceledException()
         rows = cursor.fetchall()
         self.rows.extend(rows or [])
 

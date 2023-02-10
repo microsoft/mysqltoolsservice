@@ -90,3 +90,6 @@ class OssdbErrorConstants():
     FIREWALL_RULE_SERVER_DETAILS_NOT_FOUND = 'Server Not Found'
     FIREWALL_RULE_ERROR = "Firewall Rule Error"
     PUBLIC_IP_FETCH_ERROR = "Public Ip Fetch Error"
+
+    # Other Messages
+    OPERATION_CANCELED_EXCEPTION = 'The operation was canceled.'

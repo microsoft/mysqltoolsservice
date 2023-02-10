@@ -9,6 +9,7 @@ import threading
 
 from ossdbtoolsservice.query.contracts import DbColumn, DbCellValue, ResultSetSummary, SaveResultsRequestParams  # noqa
 from ossdbtoolsservice.query.data_storage import FileStreamFactory
+from ossdbtoolsservice.utils.cancellation import CancellationToken
 
 
 class ResultSetEvents:
@@ -66,7 +67,7 @@ class ResultSet(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def read_result_to_end(self, cursor):
+    def read_result_to_end(self, cursor, cancellation_token):
         pass
 
     @abstractmethod
@@ -95,7 +96,6 @@ class ResultSet(metaclass=ABCMeta):
 
         new_save_as_thread = threading.Thread(
             target=self.do_save_as,
-            args=(params.file_path, row_start_index, row_end_index, file_factory, on_success, on_failure),
-            daemon=True)
+            args=(params.file_path, row_start_index, row_end_index, file_factory, on_success, on_failure), daemon=True)
         self._save_as_threads[params.file_path] = new_save_as_thread
         new_save_as_thread.start()

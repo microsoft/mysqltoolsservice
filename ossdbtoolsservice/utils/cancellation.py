@@ -5,13 +5,17 @@
 
 """Module containing utilities for cancelling requests"""
 
-
+# TODO check for thread safety
 class CancellationToken:
     """Token used to indicate if an operation has been canceled"""
 
     def __init__(self):
-        self.canceled = False
+        self._canceled = False
 
+    @property
+    def canceled(self) -> bool:
+        return self._canceled
+    
     def cancel(self):
         """Mark the cancellation token as canceled"""
-        self.canceled = True
+        self._canceled = True
