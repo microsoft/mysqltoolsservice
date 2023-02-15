@@ -40,9 +40,6 @@ class OssdbErrorConstants():
     NEW_DATABASE_GET_CHARSETS_ERROR_CODE = 50026
     NEW_DATABASE_GET_COLLATIONS_ERROR_CODE = 50027
     NEW_DATABASE_CREATE_ERROR_CODE = 50028
-    FIREWALL_RULE_SERVER_DETAILS_NOT_FOUND_ERROR_CODE = 50029
-    FIREWALL_RULE_ERROR_CODE = 50030
-    PUBLIC_IP_FETCH_ERROR_CODE = 500031
     
     """ ERROR CAUSES """
     MYSQL_FLEX_SSL_REQUIRED_NOT_PROVIDED_CAUSES = "SSL encryption is required by server but is not configured by client."
@@ -63,7 +60,6 @@ class OssdbErrorConstants():
     OBJECT_EXPLORER = 'Object Explorer'
     QUERY_EXECUTION = 'Query Execution'
     SCRIPTING = 'Scripting'
-    FIREWALL_RULE = 'Firewall Rule'
 
     # ErrorTelmetryNames
     LIST_DATABASES_CONNECTION_VALUE_ERROR = 'List Databases Connection Value Error'
@@ -87,9 +83,6 @@ class OssdbErrorConstants():
     DISPOSE_QUERY_REQUEST = 'Dispose Query Request Error'
     SAVE_QUERY_RESULT = 'Save Query Result Error'
     SCRIPT_AS_REQUEST = 'Script As Request Error'
-    FIREWALL_RULE_SERVER_DETAILS_NOT_FOUND = 'Server Not Found'
-    FIREWALL_RULE_ERROR = "Firewall Rule Error"
-    PUBLIC_IP_FETCH_ERROR = "Public Ip Fetch Error"
 
     # Other Messages
     OPERATION_CANCELED_EXCEPTION = 'The operation was canceled.'

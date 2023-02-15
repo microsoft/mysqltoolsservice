@@ -6,15 +6,12 @@ inflection==0.5.1
 sqlparse==0.4.3
 prompt_toolkit==3.0.31
 xlsxwriter==3.0.3
-azure-mgmt-rdbms==10.1.0
-azure-identity==1.12.0
-azure-mgmt-resourcegraph==8.0.0
 
 # SMO Requirements
 jinja2==3.1.2
 
 # Build/Test Requirements
-cx_freeze==6.14.2
+cx_freeze==6.11.1
 nose2==0.12.0
 parameterized==0.8.1
 coverage==6.4.4
