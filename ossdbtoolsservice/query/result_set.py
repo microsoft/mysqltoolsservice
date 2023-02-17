@@ -9,14 +9,14 @@ import threading
 
 from ossdbtoolsservice.query.contracts import DbColumn, DbCellValue, ResultSetSummary, SaveResultsRequestParams  # noqa
 from ossdbtoolsservice.query.data_storage import FileStreamFactory
-from ossdbtoolsservice.utils.cancellation import CancellationToken
 
 
 class ResultSetEvents:
 
-    def __init__(self, on_result_set_completed=None, on_result_set_partially_loaded=None) -> None:
+    def __init__(self, on_result_set_available=None, on_result_set_updated=None, on_result_set_completed=None) -> None:
         self._on_result_set_completed = on_result_set_completed
-        self._on_result_set_partially_loaded = on_result_set_partially_loaded
+        self._on_result_set_available = on_result_set_available
+        self._on_result_set_updated = on_result_set_updated
 
 
 class ResultSet(metaclass=ABCMeta):
@@ -27,6 +27,7 @@ class ResultSet(metaclass=ABCMeta):
         self.events = events
 
         self._has_been_read = False
+        self._has_started_read = False
         self._columns_info: List[DbColumn] = []
         self._save_as_threads: Dict[str, threading.Thread] = {}
 

@@ -4,34 +4,46 @@
 # --------------------------------------------------------------------------------------------
 
 from typing import List
-
+import copy
+import threading
 from ossdbtoolsservice.query.result_set import ResultSet, ResultSetEvents
 from ossdbtoolsservice.query.data_storage import service_buffer_file_stream as file_stream, FileStreamFactory, StorageDataReader
 from ossdbtoolsservice.query.contracts import DbColumn, DbCellValue, ResultSetSubset, SaveResultsRequestParams  # noqa
 import ossdbtoolsservice.utils as utils
 from ossdbtoolsservice.utils.cancellation import CancellationToken
 from ossdbtoolsservice.exception.OperationCanceledException import OperationCanceledException
-
+from ossdbtoolsservice.query.contracts.result_set_summary import ResultSetSummary
 
 class FileStorageResultSet(ResultSet):
 
     RESULT_SET_NOT_READ_ERROR = 'Result set not read'
     RESULT_SET_START_OUT_OF_RANGE_ERROR = 'Result set start row out of range'
     RESULT_SET_ROW_COUNT_OF_RANGE_ERROR = 'Result set row count out of range'
+    MaxResultsTimerPulseMilliseconds = 1000
+    MinResultTimerPulseMilliseconds = 10
+
 
     def __init__(self, result_set_id: int, batch_id: int, events: ResultSetEvents = None) -> None:
         ResultSet.__init__(self, result_set_id, batch_id, events)
 
+        self._semaphore = threading.Semaphore(1)
         self._total_bytes_written = 0
         self._output_file_name = file_stream.create_file()
         self._file_offsets: List[int] = []
+        self._last_updated_summary = ResultSetSummary
+        self._results_interval_multiplier = 1
+        self._results_timer = None
+        self._results_timer.function = self.send_result_available_or_updated
 
     @property
     def row_count(self) -> int:
         return len(self._file_offsets)
+    
+    def results_timer_interval(self):
+       return max(min(self.MaxResultsTimerPulseMilliseconds, self.row_count/500), self.MinResultTimerPulseMilliseconds * self._results_interval_multiplier)
 
     def get_subset(self, start_index: int, end_index: int):
-        if not self._has_been_read:
+        if not self._has_started_read:
             raise ValueError(FileStorageResultSet.RESULT_SET_NOT_READ_ERROR)
 
         if start_index < 0 or start_index >= end_index:
@@ -58,7 +70,7 @@ class FileStorageResultSet(ResultSet):
         self._file_offsets.append(new_offset)
 
     def remove_row(self, row_id: int):
-        if not self._has_been_read:
+        if not self._has_started_read:
             raise ValueError(FileStorageResultSet.RESULT_SET_NOT_READ_ERROR)
 
         del self._file_offsets[row_id]
@@ -69,7 +81,7 @@ class FileStorageResultSet(ResultSet):
 
     def get_row(self, row_id: int) -> List[DbCellValue]:
 
-        if not self._has_been_read:
+        if not self._has_started_read:
             raise ValueError(FileStorageResultSet.RESULT_SET_NOT_READ_ERROR)
 
         if row_id >= self.row_count:
@@ -85,7 +97,9 @@ class FileStorageResultSet(ResultSet):
         storage_data_reader = StorageDataReader(cursor)
 
         with file_stream.get_writer(self._output_file_name) as writer:
-
+            self._has_started_read = True
+            thread = threading.Thread(target=self.sendCurrentResults, daemon=True)
+            thread.start()
             while storage_data_reader.read_row():
                 if cancellation_token.canceled:
                     raise OperationCanceledException()
@@ -111,7 +125,7 @@ class FileStorageResultSet(ResultSet):
 
         utils.validate.is_not_none('cursor', cursor)
 
-        if not self._has_been_read:
+        if not self._has_started_read:
             raise ValueError(FileStorageResultSet.RESULT_SET_NOT_READ_ERROR)
 
         storage_data_reader = StorageDataReader(cursor)
@@ -121,3 +135,32 @@ class FileStorageResultSet(ResultSet):
             writer.seek(current_file_offset)
             self._total_bytes_written += writer.write_row(storage_data_reader)
             return current_file_offset
+        
+    def send_result_available_or_updated(self):
+        thread = threading.Thread(target=self.sendCurrentResults)
+        thread.daemon = True
+        thread.start()
+        thread.join()
+    
+    def sendCurrentResults(self):
+        with self._semaphore:
+            current_resultset_snapshot = copy.copy(self)
+            if self._last_updated_summary == None:
+                self.events._on_result_set_available(current_resultset_snapshot)
+            elif self._last_updated_summary.complete:
+                assert self._last_updated_summary.row_count == current_resultset_snapshot.row_count, "Reported rows are equal to the current rowcount"
+            else:
+                if not current_resultset_snapshot._has_been_read and self._last_updated_summary.row_count == current_resultset_snapshot.row_count:
+                    self._results_interval_multiplier += 1
+                self.events._on_result_set_updated(current_resultset_snapshot)
+
+            self._last_updated_summary = current_resultset_snapshot.result_set_summary
+
+            if current_resultset_snapshot._has_been_read:
+                if self._results_timer:
+                    self._results_timer.cancel()
+            else:
+                self._results_timer = threading.Timer(self.results_timer_interval, self.send_result_available_or_updated)
+                
+
+

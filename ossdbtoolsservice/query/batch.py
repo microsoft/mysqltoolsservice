@@ -19,7 +19,7 @@ from ossdbtoolsservice.query.in_memory_result_set import InMemoryResultSet
 from ossdbtoolsservice.query.data_storage import FileStreamFactory
 from ossdbtoolsservice.utils.cancellation import CancellationToken
 from ossdbtoolsservice.exception.OperationCanceledException import OperationCanceledException
-
+from ossdbtoolsservice.query.result_set import ResultSetEvents
 
 class ResultSetStorageType(Enum):
     IN_MEMORY = 1,
@@ -28,9 +28,12 @@ class ResultSetStorageType(Enum):
 
 class BatchEvents:
 
-    def __init__(self, on_execution_started=None, on_execution_completed=None, on_result_set_completed=None):
+    def __init__(self, on_execution_started=None, on_execution_completed=None, on_batch_message_sent=None, on_result_set_available=None, on_result_set_updated=None, on_result_set_completed=None):
         self._on_execution_started = on_execution_started
         self._on_execution_completed = on_execution_completed
+        self._on_batch_message_sent = on_batch_message_sent
+        self._on_result_set_available = on_result_set_available
+        self._on_result_set_updated = on_result_set_updated
         self._on_result_set_completed = on_result_set_completed
 
 
@@ -156,7 +159,8 @@ class Batch:
             self.create_result_set(cursor, cancellation_token)
 
     def create_result_set(self, cursor, cancellation_token: CancellationToken):
-        result_set = create_result_set(self._storage_type, 0, self.id)
+        resultset_events = ResultSetEvents(self._batch_events._on_result_set_available, self._batch_events._on_result_set_updated, self._batch_events._on_result_set_completed)
+        result_set = create_result_set(self._storage_type, 0, self.id, resultset_events)
         result_set.read_result_to_end(cursor, cancellation_token)
         self._result_set = result_set
 
@@ -187,12 +191,12 @@ class SelectBatch(Batch):
         super().create_result_set(cursor, cancellation_token)
 
 
-def create_result_set(storage_type: ResultSetStorageType, result_set_id: int, batch_id: int) -> ResultSet:
+def create_result_set(storage_type: ResultSetStorageType, result_set_id: int, batch_id: int, resultset_events: ResultSetEvents) -> ResultSet:
 
     if storage_type is ResultSetStorageType.FILE_STORAGE:
-        return FileStorageResultSet(result_set_id, batch_id)
+        return FileStorageResultSet(result_set_id, batch_id, resultset_events)
 
-    return InMemoryResultSet(result_set_id, batch_id)
+    return InMemoryResultSet(result_set_id, batch_id, resultset_events)
 
 
 def create_batch(batch_text: str, ordinal: int, selection: SelectionData, batch_events: BatchEvents, storage_type: ResultSetStorageType) -> Batch:

@@ -23,7 +23,7 @@ from ossdbtoolsservice.query_execution.contracts import (
     BATCH_START_NOTIFICATION, BATCH_COMPLETE_NOTIFICATION,
     DEPLOY_BATCH_COMPLETE_NOTIFICATION, DEPLOY_BATCH_START_NOTIFICATION, EXECUTE_DOCUMENT_STATEMENT_REQUEST,
     ExecuteDocumentStatementParams, ExecutionPlanOptions, ResultSetNotificationParams,
-    MESSAGE_NOTIFICATION, DEPLOY_MESSAGE_NOTIFICATION, RESULT_SET_AVAILABLE_NOTIFICATION, RESULT_SET_COMPLETE_NOTIFICATION, MessageNotificationParams,
+    MESSAGE_NOTIFICATION, DEPLOY_MESSAGE_NOTIFICATION, RESULT_SET_AVAILABLE_NOTIFICATION, RESULT_SET_COMPLETE_NOTIFICATION, RESULT_SET_UPDATED_NOTIFICATION, MessageNotificationParams,
     QUERY_COMPLETE_NOTIFICATION, DEPLOY_COMPLETE_NOTIFICATION, QUERY_EXECUTION_PLAN_REQUEST, QueryCancelResult, QueryExecutionPlanRequest,
     SUBSET_REQUEST, ExecuteDocumentSelectionParams, CANCEL_REQUEST, QueryCancelParams, ResultMessage, SubsetParams,
     BatchNotificationParams, QueryCompleteNotificationParams, QueryDisposeParams,
@@ -32,7 +32,7 @@ from ossdbtoolsservice.query_execution.contracts import (
     SaveResultsAsJsonRequestParams, SaveResultRequestResult,
     SaveResultsAsCsvRequestParams, SaveResultsAsExcelRequestParams, SaveResultsAsXmlRequestParams
 )
-
+from ossdbtoolsservice.query.result_set import ResultSet
 from ossdbtoolsservice.driver import ServerConnection
 from ossdbtoolsservice.exception.OssdbErrorConstants import OssdbErrorConstants
 from ossdbtoolsservice.exception.OperationCanceledException import OperationCanceledException
@@ -51,7 +51,7 @@ NO_QUERY_MESSAGE = 'QueryServiceRequestsNoQuery'
 class ExecuteRequestWorkerArgs():
 
     def __init__(self, owner_uri: str, connection: ServerConnection, request_context: RequestContext, result_set_storage_type,
-                 before_query_initialize: Callable = None, on_batch_start: Callable = None, on_message_notification: Callable = None,
+                 before_query_initialize: Callable = None, on_batch_start: Callable = None, on_message_notification: Callable = None, on_resultset_available: Callable = None, on_resultset_updated: Callable = None, 
                  on_resultset_complete: Callable = None, on_batch_complete: Callable = None, on_query_complete: Callable = None):
 
         self.owner_uri = owner_uri
@@ -62,6 +62,8 @@ class ExecuteRequestWorkerArgs():
         self.on_batch_start = on_batch_start
         self.on_message_notification = on_message_notification
         self.on_resultset_complete = on_resultset_complete
+        self.on_resultset_available = on_resultset_available
+        self.on_resultset_updated= on_resultset_updated
         self.on_batch_complete = on_batch_complete
         self.on_query_complete = on_query_complete
 
@@ -170,16 +172,21 @@ class QueryExecutionService(object):
 
         def on_batch_start(batch_event_params):
             request_context.send_notification(BATCH_START_NOTIFICATION, batch_event_params)
+        
+        def on_batch_complete(batch_event_params):
+            request_context.send_notification(BATCH_COMPLETE_NOTIFICATION, batch_event_params)
 
         def on_message_notification(notice_message_params):
             request_context.send_notification(MESSAGE_NOTIFICATION, notice_message_params)
+        
+        def on_resultset_available(result_set_params):
+            request_context.send_notification(RESULT_SET_AVAILABLE_NOTIFICATION, result_set_params)
+        
+        def on_resultset_updated(result_set_params):
+            request_context.send_notification(RESULT_SET_UPDATED_NOTIFICATION, result_set_params)
 
         def on_resultset_complete(result_set_params):
-            request_context.send_notification(RESULT_SET_AVAILABLE_NOTIFICATION, result_set_params)
             request_context.send_notification(RESULT_SET_COMPLETE_NOTIFICATION, result_set_params)
-
-        def on_batch_complete(batch_event_params):
-            request_context.send_notification(BATCH_COMPLETE_NOTIFICATION, batch_event_params)
 
         def on_query_complete(query_complete_params):
             request_context.send_notification(QUERY_COMPLETE_NOTIFICATION, query_complete_params)
@@ -195,7 +202,7 @@ class QueryExecutionService(object):
             return
 
         worker_args = ExecuteRequestWorkerArgs(params.owner_uri, conn, request_context, ResultSetStorageType.FILE_STORAGE, before_query_initialize,
-                                               on_batch_start, on_message_notification, on_resultset_complete,
+                                               on_batch_start, on_message_notification, on_resultset_available, on_resultset_updated, on_resultset_complete,
                                                on_batch_complete, on_query_complete)
 
         self._start_query_execution_thread(request_context, params, worker_args)
@@ -247,36 +254,37 @@ class QueryExecutionService(object):
         def _batch_execution_started_callback(batch: Batch) -> None:
             batch_event_params = BatchNotificationParams(batch.batch_summary, worker_args.owner_uri)
             _check_and_fire(worker_args.on_batch_start, batch_event_params)
-
+        
         def _batch_execution_finished_callback(batch: Batch) -> None:
-            # Send back notices as a separate message to avoid error coloring / highlighting of text
-            notices = batch.notices
-            if notices:
-                notice_message_params = self.build_message_params(worker_args.owner_uri, batch.id, ''.join(notices), False)
-                _check_and_fire(worker_args.on_message_notification, notice_message_params)
-
-            batch_summary = batch.batch_summary
-
-            # send query/resultSetComplete response
-            result_set_params = self.build_result_set_complete_params(batch_summary, worker_args.owner_uri)
-            _check_and_fire(worker_args.on_resultset_complete, result_set_params)
-
-            # If the batch was successful, send a message to the client
-            if not batch.has_error:
-                rows_message = _create_rows_affected_message(batch)
-                message_params = self.build_message_params(worker_args.owner_uri, batch.id, rows_message, False)
-                _check_and_fire(worker_args.on_message_notification, message_params)
-
-            # send query/batchComplete and query/complete response
-            batch_event_params = BatchNotificationParams(batch_summary, worker_args.owner_uri)
+            batch_event_params = BatchNotificationParams(batch.batch_summary, worker_args.owner_uri)
             _check_and_fire(worker_args.on_batch_complete, batch_event_params)
+        
+        def _query_complete_callback(query: Query) -> None:
+            event_params = QueryCompleteNotificationParams(worker_args.owner_uri, query.batch_summaries)
+            _check_and_fire(worker_args.on_query_complete, event_params)
+
+        def _batch_message_callback(message: ResultMessage):
+            message_params = MessageNotificationParams(worker_args.owner_uri, message)
+            _check_and_fire(worker_args.on_query_complete, message_params)
+
+        def _result_set_available_callback(result_set: ResultSet):
+            event_params = ResultSetNotificationParams(worker_args.owner_uri, result_set.result_set_summary)
+            _check_and_fire(worker_args.on_resultset_available, event_params)
+        
+        def _result_set_updated_callback(result_set: ResultSet):
+            event_params = ResultSetNotificationParams(worker_args.owner_uri, result_set.result_set_summary)
+            _check_and_fire(worker_args.on_resultset_updated, event_params)
+        
+        def _result_set_complete_callback(result_set: ResultSet):
+            event_params = ResultSetNotificationParams(worker_args.owner_uri, result_set.result_set_summary)
+            _check_and_fire(worker_args.on_resultset_complete, event_params)
 
         # Create a new query if one does not already exist or we already executed the previous one
         if params.owner_uri not in self.query_results or self.query_results[params.owner_uri].execution_state is ExecutionState.EXECUTED:
             query_text = self._get_query_text_from_execute_params(params)
 
             execution_settings = QueryExecutionSettings(params.execution_plan_options, worker_args.result_set_storage_type)
-            query_events = QueryEvents(None, None, BatchEvents(_batch_execution_started_callback, _batch_execution_finished_callback))
+            query_events = QueryEvents(None, _query_complete_callback, _batch_execution_started_callback, _batch_execution_finished_callback, _batch_message_callback, _result_set_available_callback, _result_set_updated_callback, _result_set_complete_callback)
             self.query_results[params.owner_uri] = Query(params.owner_uri, query_text, execution_settings, query_events)
         elif self.query_results[params.owner_uri].execution_state is ExecutionState.EXECUTING:
             send_error_telemetry_notification(request_context, OssdbErrorConstants.QUERY_EXECUTION, OssdbErrorConstants.ANOTHER_QUERY_EXECUTING, OssdbErrorConstants.ANOTHER_QUERY_EXECUTING_ERROR)
@@ -371,10 +379,7 @@ class QueryExecutionService(object):
             self._resolve_query_exception(e, query, worker_args)
         finally:
             # Send a query complete notification
-            batch_summaries = [batch.batch_summary for batch in query.batches]
-
-            query_complete_params = QueryCompleteNotificationParams(worker_args.owner_uri, batch_summaries)
-            _check_and_fire(worker_args.on_query_complete, query_complete_params)
+            query.query_events.on_query_completed(self)
 
     def _get_connection(self, owner_uri: str, connection_type: ConnectionType, request_context: RequestContext) -> ServerConnection:
         """
