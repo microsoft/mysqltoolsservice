@@ -256,6 +256,18 @@ class QueryExecutionService(object):
             _check_and_fire(worker_args.on_batch_start, batch_event_params)
         
         def _batch_execution_finished_callback(batch: Batch) -> None:
+            # Send back notices as a separate message to avoid error coloring / highlighting of text
+            notices = batch.notices
+            if notices:
+                notice_message_params = self.build_message_params(worker_args.owner_uri, ''.join(notices), False)
+                _check_and_fire(worker_args.on_message_notification, notice_message_params)
+            
+            # If the batch was successful, send a message to the client
+            if not batch.has_error:
+                rows_message = _create_rows_affected_message(batch)
+                message_params = self.build_message_params(worker_args.owner_uri, batch.id, rows_message, False)
+                _check_and_fire(worker_args.on_message_notification, message_params)
+                
             batch_event_params = BatchNotificationParams(batch.batch_summary, worker_args.owner_uri)
             _check_and_fire(worker_args.on_batch_complete, batch_event_params)
         
@@ -265,7 +277,7 @@ class QueryExecutionService(object):
 
         def _batch_message_callback(message: ResultMessage):
             message_params = MessageNotificationParams(worker_args.owner_uri, message)
-            _check_and_fire(worker_args.on_query_complete, message_params)
+            _check_and_fire(worker_args.on_message_notification, message_params)
 
         def _result_set_available_callback(result_set: ResultSet):
             event_params = ResultSetNotificationParams(worker_args.owner_uri, result_set.result_set_summary)

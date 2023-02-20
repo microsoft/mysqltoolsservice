@@ -96,6 +96,7 @@ class FileStorageResultSet(ResultSet):
 
         with file_stream.get_writer(self._output_file_name) as writer:
             self._has_started_read = True
+            self.columns_info = storage_data_reader.columns_info
             thread.start()
             while storage_data_reader.read_row():
                 if cancellation_token.canceled:
@@ -103,7 +104,7 @@ class FileStorageResultSet(ResultSet):
                 self._file_offsets.append(self._total_bytes_written)
                 self._total_bytes_written += writer.write_row(storage_data_reader)
 
-            self.columns_info = storage_data_reader.columns_info
+            
         thread.join()
         self._has_been_read = True
         self.events._on_result_set_completed(self)
