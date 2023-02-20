@@ -1,3 +1,4 @@
+import sys
 from cx_Freeze import setup, Executable
 
 # Dependencies are automatically detected, but it might need
@@ -11,7 +12,7 @@ buildOptions = dict(
     replace_paths = [("*", "")]
 )
 
-base = 'Console'
+base = 'Console' if sys.platform == "win32" else None
 
 executables = [
     Executable('ossdbtoolsservice/ossdbtoolsservice_main.py', base=base)
