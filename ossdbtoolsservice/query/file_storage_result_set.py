@@ -39,7 +39,7 @@ class FileStorageResultSet(ResultSet):
         return len(self._file_offsets)
     
     def results_timer_interval(self):
-       return max(min(self.MaxResultsTimerPulseMilliseconds, self.row_count/500), self.MinResultTimerPulseMilliseconds * self._results_interval_multiplier)
+       return (max(min(self.MaxResultsTimerPulseMilliseconds, self.row_count/500), self.MinResultTimerPulseMilliseconds * self._results_interval_multiplier))/1000
 
     def get_subset(self, start_index: int, end_index: int):
         if not self._has_started_read:
@@ -104,9 +104,12 @@ class FileStorageResultSet(ResultSet):
                 self._file_offsets.append(self._total_bytes_written)
                 self._total_bytes_written += writer.write_row(storage_data_reader)
 
-            
+        # await the completion of available notification in case it is not already done before proceeding
         thread.join()
         self._has_been_read = True
+
+        # Make a final call to SendCurrentResults(). If the previously scheduled task already took care of latest status send then this should be a no-op
+        self.send_current_results()
         self.events._on_result_set_completed(self)
 
     def do_save_as(self, file_path: str, row_start_index: int, row_end_index: int, file_factory: FileStreamFactory, on_success, on_failure) -> None:
@@ -158,10 +161,15 @@ class FileStorageResultSet(ResultSet):
             self._last_updated_summary = current_resultset_snapshot.result_set_summary
 
             if current_resultset_snapshot._has_been_read:
+                # If we have already completed reading then we are done and we do not need to send any more updates. Switch off timer.
                 if self._results_timer:
                     self._results_timer.cancel()
             else:
-                self._results_timer = threading.Timer(self.results_timer_interval, self.send_result_available_or_updated)
+                if self._results_timer:
+                    self._results_timer.cancel()
+                # If we have not yet completed reading then set the timer so this method gets called again after ResultTimerInterval milliseconds
+                self._results_timer = threading.Timer(self.results_timer_interval(), self.send_result_available_or_updated)
+                self._results_timer.start()
                 
 
 
