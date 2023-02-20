@@ -91,8 +91,8 @@ class FileStorageResultSet(ResultSet):
 
     def read_result_to_end(self, cursor, cancellation_token: CancellationToken):
         utils.validate.is_not_none('cursor', cursor)
-        storage_data_reader = StorageDataReader(cursor)
         thread = threading.Thread(target=self.send_current_results, daemon=True)
+        storage_data_reader = StorageDataReader(cursor)
 
         with file_stream.get_writer(self._output_file_name) as writer:
             self._has_started_read = True
@@ -104,7 +104,9 @@ class FileStorageResultSet(ResultSet):
                 self._total_bytes_written += writer.write_row(storage_data_reader)
 
             self.columns_info = storage_data_reader.columns_info
+        thread.join()
         self._has_been_read = True
+        self.events._on_result_set_completed(self)
 
     def do_save_as(self, file_path: str, row_start_index: int, row_end_index: int, file_factory: FileStreamFactory, on_success, on_failure) -> None:
 
