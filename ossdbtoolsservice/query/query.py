@@ -161,6 +161,7 @@ class Query:
             if connection.open and self._disable_auto_commit:
                 connection.execute_query('Set autocommit = 1;')
             self._execution_state = ExecutionState.EXECUTED
+            self.query_events.on_query_completed(self)
     
     def get_subset(self, batch_index: int, start_index: int, end_index: int):
         if batch_index < 0 or batch_index >= len(self._batches):

@@ -377,9 +377,6 @@ class QueryExecutionService(object):
             query.execute(worker_args.connection)
         except Exception as e:
             self._resolve_query_exception(e, query, worker_args)
-        finally:
-            # Send a query complete notification
-            query.query_events.on_query_completed(self)
 
     def _get_connection(self, owner_uri: str, connection_type: ConnectionType, request_context: RequestContext) -> ServerConnection:
         """

@@ -30,10 +30,9 @@ class FileStorageResultSet(ResultSet):
         self._total_bytes_written = 0
         self._output_file_name = file_stream.create_file()
         self._file_offsets: List[int] = []
-        self._last_updated_summary = ResultSetSummary
+        self._last_updated_summary = None
         self._results_interval_multiplier = 1
         self._results_timer = None
-        self._results_timer.function = self.send_result_available_or_updated
 
     @property
     def row_count(self) -> int:
@@ -92,13 +91,11 @@ class FileStorageResultSet(ResultSet):
 
     def read_result_to_end(self, cursor, cancellation_token: CancellationToken):
         utils.validate.is_not_none('cursor', cursor)
-
-        self._has_been_read = True
         storage_data_reader = StorageDataReader(cursor)
+        thread = threading.Thread(target=self.send_current_results, daemon=True)
 
         with file_stream.get_writer(self._output_file_name) as writer:
             self._has_started_read = True
-            thread = threading.Thread(target=self.sendCurrentResults, daemon=True)
             thread.start()
             while storage_data_reader.read_row():
                 if cancellation_token.canceled:
@@ -107,6 +104,7 @@ class FileStorageResultSet(ResultSet):
                 self._total_bytes_written += writer.write_row(storage_data_reader)
 
             self.columns_info = storage_data_reader.columns_info
+        self._has_been_read = True
 
     def do_save_as(self, file_path: str, row_start_index: int, row_end_index: int, file_factory: FileStreamFactory, on_success, on_failure) -> None:
 
@@ -137,12 +135,12 @@ class FileStorageResultSet(ResultSet):
             return current_file_offset
         
     def send_result_available_or_updated(self):
-        thread = threading.Thread(target=self.sendCurrentResults)
+        thread = threading.Thread(target=self.send_current_results)
         thread.daemon = True
         thread.start()
         thread.join()
     
-    def sendCurrentResults(self):
+    def send_current_results(self):
         with self._semaphore:
             current_resultset_snapshot = copy.copy(self)
             if self._last_updated_summary == None:

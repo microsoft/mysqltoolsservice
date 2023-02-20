@@ -160,9 +160,8 @@ class Batch:
 
     def create_result_set(self, cursor, cancellation_token: CancellationToken):
         resultset_events = ResultSetEvents(self._batch_events._on_result_set_available, self._batch_events._on_result_set_updated, self._batch_events._on_result_set_completed)
-        result_set = create_result_set(self._storage_type, 0, self.id, resultset_events)
-        result_set.read_result_to_end(cursor, cancellation_token)
-        self._result_set = result_set
+        self._result_set = create_result_set(self._storage_type, 0, self.id, resultset_events)
+        self._result_set.read_result_to_end(cursor, cancellation_token)
 
     def get_subset(self, start_index: int, end_index: int):
         return self._result_set.get_subset(start_index, end_index)
