@@ -19,7 +19,7 @@ class FileStorageResultSet(ResultSet):
     RESULT_SET_NOT_READ_ERROR = 'Result set not read'
     RESULT_SET_START_OUT_OF_RANGE_ERROR = 'Result set start row out of range'
     RESULT_SET_ROW_COUNT_OF_RANGE_ERROR = 'Result set row count out of range'
-    MaxResultsTimerPulseMilliseconds = 2000
+    MaxResultsTimerPulseMilliseconds = 1000
     MinResultTimerPulseMilliseconds = 500
 
 
