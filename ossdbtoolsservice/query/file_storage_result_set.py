@@ -19,8 +19,8 @@ class FileStorageResultSet(ResultSet):
     RESULT_SET_NOT_READ_ERROR = 'Result set not read'
     RESULT_SET_START_OUT_OF_RANGE_ERROR = 'Result set start row out of range'
     RESULT_SET_ROW_COUNT_OF_RANGE_ERROR = 'Result set row count out of range'
-    MaxResultsTimerPulseMilliseconds = 1000
-    MinResultTimerPulseMilliseconds = 10
+    MaxResultsTimerPulseMilliseconds = 2000
+    MinResultTimerPulseMilliseconds = 500
 
 
     def __init__(self, result_set_id: int, batch_id: int, events: ResultSetEvents = None) -> None:
@@ -156,6 +156,8 @@ class FileStorageResultSet(ResultSet):
             elif self._last_updated_summary.complete:
                 assert self._last_updated_summary.row_count == current_resultset_snapshot.row_count, "Reported rows are equal to the current rowcount"
             else:
+                assert self._last_updated_summary.row_count <= current_resultset_snapshot.row_count, "Already reported rows should be less than or equal to current total rowcount"
+                # If there has been no change in row_count since last update and we have not yet completed read then log and increase the timer duration
                 if not current_resultset_snapshot._has_been_read and self._last_updated_summary.row_count == current_resultset_snapshot.row_count:
                     self._results_interval_multiplier += 1
                 self.events._on_result_set_updated(current_resultset_snapshot)
@@ -171,6 +173,3 @@ class FileStorageResultSet(ResultSet):
                 # If we have not yet completed reading then set the timer so this method gets called again after ResultTimerInterval milliseconds
                 self._results_timer = threading.Timer(self.results_timer_interval(), self.send_result_available_or_updated, args=(cancellation_token, ))
                 self._results_timer.start()
-                
-
-
