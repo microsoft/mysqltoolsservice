@@ -109,7 +109,7 @@ class FileStorageResultSet(ResultSet):
         self._has_been_read = True
 
         # Make a final call to SendCurrentResults(). If the previously scheduled task already took care of latest status send then this should be a no-op
-        self.send_current_results()
+        self.send_current_results(cancellation_token)
         self.events._on_result_set_completed(self)
 
     def do_save_as(self, file_path: str, row_start_index: int, row_end_index: int, file_factory: FileStreamFactory, on_success, on_failure) -> None:
