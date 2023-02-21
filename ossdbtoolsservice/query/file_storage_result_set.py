@@ -91,7 +91,7 @@ class FileStorageResultSet(ResultSet):
 
     def read_result_to_end(self, cursor, cancellation_token: CancellationToken):
         utils.validate.is_not_none('cursor', cursor)
-        thread = threading.Thread(target=self.send_current_results, daemon=True)
+        thread = threading.Thread(target=self.send_current_results, daemon=True, args=(cancellation_token, ))
         storage_data_reader = StorageDataReader(cursor)
 
         with file_stream.get_writer(self._output_file_name) as writer:
@@ -140,13 +140,15 @@ class FileStorageResultSet(ResultSet):
             self._total_bytes_written += writer.write_row(storage_data_reader)
             return current_file_offset
         
-    def send_result_available_or_updated(self):
-        thread = threading.Thread(target=self.send_current_results)
-        thread.daemon = True
-        thread.start()
-        thread.join()
+    def send_result_available_or_updated(self, cancellation_token: CancellationToken):
+        self.send_current_results(cancellation_token)
     
-    def send_current_results(self):
+    def send_current_results(self, cancellation_token: CancellationToken):
+        if cancellation_token.canceled:
+            if self._results_timer:
+                self._results_timer.cancel()
+            return
+        
         with self._semaphore:
             current_resultset_snapshot = copy.copy(self)
             if self._last_updated_summary == None:
@@ -159,7 +161,6 @@ class FileStorageResultSet(ResultSet):
                 self.events._on_result_set_updated(current_resultset_snapshot)
 
             self._last_updated_summary = current_resultset_snapshot.result_set_summary
-
             if current_resultset_snapshot._has_been_read:
                 # If we have already completed reading then we are done and we do not need to send any more updates. Switch off timer.
                 if self._results_timer:
@@ -168,7 +169,7 @@ class FileStorageResultSet(ResultSet):
                 if self._results_timer:
                     self._results_timer.cancel()
                 # If we have not yet completed reading then set the timer so this method gets called again after ResultTimerInterval milliseconds
-                self._results_timer = threading.Timer(self.results_timer_interval(), self.send_result_available_or_updated)
+                self._results_timer = threading.Timer(self.results_timer_interval(), self.send_result_available_or_updated, args=(cancellation_token, ))
                 self._results_timer.start()
                 
 
