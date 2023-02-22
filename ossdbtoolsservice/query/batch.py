@@ -124,6 +124,7 @@ class Batch:
         
         self._execution_start_time = datetime.now()
 
+        # Call the Batch Execution started callback
         if self._batch_events and self._batch_events._on_execution_started:
             self._batch_events._on_execution_started(self)
         
@@ -136,6 +137,7 @@ class Batch:
             self._has_executed = True
             self._execution_end_time = datetime.now()
 
+            # Call the Batch execution completed callback
             if self._batch_events and self._batch_events._on_execution_completed:
                 self._batch_events._on_execution_completed(self)
 
