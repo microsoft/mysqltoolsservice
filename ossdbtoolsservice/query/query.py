@@ -18,15 +18,10 @@ from ossdbtoolsservice.query_execution.contracts.message_notification import Res
 
 
 class QueryEvents:
-    def __init__(self, on_query_started=None, on_query_completed=None, on_batch_execution_started=None, on_batch_execution_completed=None, on_batch_message_sent=None, on_result_set_available=None, on_result_set_updated=None, on_result_set_completed=None) -> None:
+    def __init__(self, on_query_started=None, on_query_completed=None, batch_events: BatchEvents=None) -> None:
         self.on_query_started = on_query_started
         self.on_query_completed = on_query_completed
-        self.on_batch_execution_started = on_batch_execution_started
-        self.on_batch_execution_complete = on_batch_execution_completed
-        self.on_batch_message_sent = on_batch_message_sent
-        self.on_result_set_available = on_result_set_available
-        self.on_result_set_updated = on_result_set_updated
-        self.on_result_set_completed = on_result_set_completed
+        self.batch_events = batch_events
 
 
 class ExecutionState(Enum):
@@ -96,7 +91,7 @@ class Query:
                 sql_statement_text,
                 len(self.batches),
                 selection_data[index],
-                BatchEvents(query_events.on_batch_execution_started, query_events.on_batch_execution_complete, query_events.on_batch_message_sent, query_events.on_result_set_available, query_events.on_result_set_updated, query_events.on_result_set_completed),
+                query_events.batch_events,
                 query_execution_settings.result_set_storage_type)
 
             self._batches.append(batch)

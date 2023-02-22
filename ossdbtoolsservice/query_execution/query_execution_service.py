@@ -287,7 +287,7 @@ class QueryExecutionService(object):
             event_params = ResultSetNotificationParams(worker_args.owner_uri, result_set.result_set_summary)
             _check_and_fire(worker_args.on_resultset_updated, event_params)
         
-        def _result_set_complete_callback(result_set: ResultSet):
+        def _result_set_completed_callback(result_set: ResultSet):
             event_params = ResultSetNotificationParams(worker_args.owner_uri, result_set.result_set_summary)
             _check_and_fire(worker_args.on_resultset_complete, event_params)
 
@@ -296,7 +296,8 @@ class QueryExecutionService(object):
             query_text = self._get_query_text_from_execute_params(params)
 
             execution_settings = QueryExecutionSettings(params.execution_plan_options, worker_args.result_set_storage_type)
-            query_events = QueryEvents(None, _query_complete_callback, _batch_execution_started_callback, _batch_execution_finished_callback, _batch_message_callback, _result_set_available_callback, _result_set_updated_callback, _result_set_complete_callback)
+            batch_events = BatchEvents(_batch_execution_started_callback, _batch_execution_finished_callback, _batch_message_callback, _result_set_available_callback, _result_set_updated_callback, _result_set_completed_callback)
+            query_events = QueryEvents(None, _query_complete_callback, batch_events)
             self.query_results[params.owner_uri] = Query(params.owner_uri, query_text, execution_settings, query_events)
         elif self.query_results[params.owner_uri].execution_state is ExecutionState.EXECUTING:
             send_error_telemetry_notification(request_context, OssdbErrorConstants.QUERY_EXECUTION, OssdbErrorConstants.ANOTHER_QUERY_EXECUTING, OssdbErrorConstants.ANOTHER_QUERY_EXECUTING_ERROR)
