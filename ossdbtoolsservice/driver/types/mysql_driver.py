@@ -218,14 +218,14 @@ class MySQLConnection(ServerConnection):
         """
         self._conn.commit()
 
-    def cursor(self, **kwargs):
+    def cursor(self, buffered=True):
         """
         Returns a cursor for the current connection
         :param kwargs will ignored as PyMySQL does not yet support named cursors
         """
         self._conn.ping()
         # Create a new cursor from the current connection
-        cursor_instance = self._conn.cursor(buffered=True)
+        cursor_instance = self._conn.cursor(buffered=buffered)
 
         # Store the provider name as an attribute in the cursor object
         attr = "provider"

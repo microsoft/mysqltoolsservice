@@ -19,8 +19,7 @@ class FileStorageResultSet(ResultSet):
     RESULT_SET_NOT_READ_ERROR = 'Result set not read'
     RESULT_SET_START_OUT_OF_RANGE_ERROR = 'Result set start row out of range'
     RESULT_SET_ROW_COUNT_OF_RANGE_ERROR = 'Result set row count out of range'
-    MaxResultsTimerPulseMilliseconds = 1000
-    MinResultTimerPulseMilliseconds = 500
+    RESULTS_TIMER_INTERVAL = 1 # time interval for running timer
 
 
     def __init__(self, result_set_id: int, batch_id: int, events: ResultSetEvents = None) -> None:
@@ -37,9 +36,6 @@ class FileStorageResultSet(ResultSet):
     @property
     def row_count(self) -> int:
         return len(self._file_offsets)
-    
-    def results_timer_interval(self):
-       return (max(min(self.MaxResultsTimerPulseMilliseconds, self.row_count/500), self.MinResultTimerPulseMilliseconds * self._results_interval_multiplier))/1000
 
     def get_subset(self, start_index: int, end_index: int):
         # Sanity check to make sure that results read has started
@@ -191,5 +187,5 @@ class FileStorageResultSet(ResultSet):
                 if self._results_timer:
                     self._results_timer.cancel()
                 # If we have not yet completed reading then set the timer so this method gets called again after ResultTimerInterval milliseconds
-                self._results_timer = threading.Timer(self.results_timer_interval(), self.send_result_available_or_updated, args=(cancellation_token, ))
+                self._results_timer = threading.Timer(self.RESULTS_TIMER_INTERVAL, self.send_result_available_or_updated, args=(cancellation_token, ))
                 self._results_timer.start()

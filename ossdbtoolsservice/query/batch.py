@@ -110,7 +110,7 @@ class Batch:
         return self._notices
 
     def get_cursor(self, connection: ServerConnection):
-        return connection.cursor()
+        return connection.cursor(buffered=False)
 
     def execute(self, conn: ServerConnection, cancellation_token: CancellationToken) -> None:
         """
@@ -182,11 +182,7 @@ class SelectBatch(Batch):
         Batch.__init__(self, batch_text, ordinal, selection, batch_events, storage_type)
 
     def get_cursor(self, connection: ServerConnection):
-        cursor_name = str(uuid.uuid4())
-        # Named cursors can be created only in the transaction. As our connection has autocommit set to true
-        # there is not transaction concept with it so we need to have withhold to true and as this cursor is local
-        # and we explicitly close it we are good
-        return connection.cursor(name=cursor_name, withhold=True)
+        return connection.cursor(buffered=False)
 
     def after_execute(self, cursor, cancellation_token: CancellationToken) -> None:
         super().create_result_set(cursor, cancellation_token)
