@@ -3,6 +3,7 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
+import time
 from typing import List
 import copy
 import threading
@@ -12,26 +13,22 @@ from ossdbtoolsservice.query.contracts import DbColumn, DbCellValue, ResultSetSu
 import ossdbtoolsservice.utils as utils
 from ossdbtoolsservice.utils.cancellation import CancellationToken
 from ossdbtoolsservice.exception.OperationCanceledException import OperationCanceledException
-from ossdbtoolsservice.query.contracts.result_set_summary import ResultSetSummary
 
 class FileStorageResultSet(ResultSet):
 
     RESULT_SET_NOT_READ_ERROR = 'Result set not read'
     RESULT_SET_START_OUT_OF_RANGE_ERROR = 'Result set start row out of range'
     RESULT_SET_ROW_COUNT_OF_RANGE_ERROR = 'Result set row count out of range'
-    RESULTS_TIMER_INTERVAL = 1 # time interval for running timer
+    RESULTS_TIMER_INTERVAL = 1 # time interval in seconds for running timer
 
 
     def __init__(self, result_set_id: int, batch_id: int, events: ResultSetEvents = None) -> None:
         ResultSet.__init__(self, result_set_id, batch_id, events)
 
-        self._send_results_semaphore = threading.Semaphore(1)
         self._total_bytes_written = 0
         self._output_file_name = file_stream.create_file()
         self._file_offsets: List[int] = []
         self._last_updated_summary = None
-        self._results_interval_multiplier = 1
-        self._results_timer = None
 
     @property
     def row_count(self) -> int:
@@ -89,7 +86,7 @@ class FileStorageResultSet(ResultSet):
 
     def read_result_to_end(self, cursor, cancellation_token: CancellationToken):
         utils.validate.is_not_none('cursor', cursor)
-        thread = threading.Thread(target=self.send_current_results, daemon=True, args=(cancellation_token, ))
+        thread = threading.Thread(target=self._send_current_results, daemon=True, args=(cancellation_token, ))
         storage_data_reader = StorageDataReader(cursor)
 
         with file_stream.get_writer(self._output_file_name) as writer:
@@ -141,51 +138,29 @@ class FileStorageResultSet(ResultSet):
             writer.seek(current_file_offset)
             self._total_bytes_written += writer.write_row(storage_data_reader)
             return current_file_offset
-        
-    def send_result_available_or_updated(self, cancellation_token: CancellationToken):
-        # Make the call to send current results and synchronously wait for it to finish
-        self.send_current_results(cancellation_token)
     
-    def send_current_results(self, cancellation_token: CancellationToken):
-        if cancellation_token.canceled:
-            if self._results_timer:
-                self._results_timer.cancel()
-            return
-        # acquire the sendResultsSemphore before proceeding, as we want only one instance of this method executing at any given time
-        with self._send_results_semaphore:
+    def _send_current_results(self, cancellation_token: CancellationToken):
+
+        while self._has_been_read:
+            if cancellation_token.canceled:
+                return
+
+            time.sleep(self.RESULTS_TIMER_INTERVAL)
+
             current_resultset_snapshot = copy.copy(self)
 
             if self._last_updated_summary == None: 
                 # We need to send results available message
                 self.events._on_result_set_available(current_resultset_snapshot)
-
             elif self._last_updated_summary.complete:
                 # If last result summary sent had already set the Complete flag
                 assert self._last_updated_summary.row_count == current_resultset_snapshot.row_count, "Reported rows are equal to the current rowcount"
-            
             else: # We need to send results updated message
-                
                 # Previously reported rows should be less than or equal to current number of rows about to be reported
                 assert self._last_updated_summary.row_count <= current_resultset_snapshot.row_count, "Already reported rows should be less than or equal to current total rowcount"
-                
-                # If there has been no change in row_count since last update and we have not yet completed read then log and increase the timer duration
-                if not current_resultset_snapshot._has_been_read and self._last_updated_summary.row_count == current_resultset_snapshot.row_count:
-                    self._results_interval_multiplier += 1
-                
                 # Fire off results updated task
                 self.events._on_result_set_updated(current_resultset_snapshot)
             
             # Update the LastUpdatedSummary to be the value captured in current snapshot
             self._last_updated_summary = current_resultset_snapshot.result_set_summary
 
-            # Setup timer for the next callback
-            if current_resultset_snapshot._has_been_read:
-                # If we have already completed reading then we are done and we do not need to send any more updates. Switch off timer.
-                if self._results_timer:
-                    self._results_timer.cancel()
-            else:
-                if self._results_timer:
-                    self._results_timer.cancel()
-                # If we have not yet completed reading then set the timer so this method gets called again after ResultTimerInterval milliseconds
-                self._results_timer = threading.Timer(self.RESULTS_TIMER_INTERVAL, self.send_result_available_or_updated, args=(cancellation_token, ))
-                self._results_timer.start()
