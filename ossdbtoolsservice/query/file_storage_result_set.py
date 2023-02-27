@@ -101,12 +101,13 @@ class FileStorageResultSet(ResultSet):
                 self._file_offsets.append(self._total_bytes_written)
                 self._total_bytes_written += writer.write_row(storage_data_reader)
 
-        # await the completion of available notification in case it is not already done before proceeding
-        thread.join()
         self._has_been_read = True
 
+        # await the completion of available notification in case it is not already done before proceeding
+        thread.join()
+
         # Make a final call to SendCurrentResults(). If the previously scheduled task already took care of latest status send then this should be a no-op
-        self.send_current_results(cancellation_token)
+        self._send_current_results(cancellation_token)
 
         # Make a call to send ResultCompletion
         self.events._on_result_set_completed(self)
@@ -141,7 +142,7 @@ class FileStorageResultSet(ResultSet):
     
     def _send_current_results(self, cancellation_token: CancellationToken):
 
-        while self._has_been_read:
+        while self._has_been_read == False:
             if cancellation_token.canceled:
                 return
 
@@ -150,7 +151,7 @@ class FileStorageResultSet(ResultSet):
             current_resultset_snapshot = copy.copy(self)
 
             if self._last_updated_summary == None: 
-                # We need to send results available message
+                # Fire off results available message
                 self.events._on_result_set_available(current_resultset_snapshot)
             elif self._last_updated_summary.complete:
                 # If last result summary sent had already set the Complete flag
