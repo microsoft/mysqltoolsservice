@@ -111,6 +111,10 @@ class MySQLConnection(ServerConnection):
         # Setting autocommit to True initally
         self._connection_options['autocommit'] = True
 
+        # Setting consume_results to True so that unread results during unbuffered cursor are fetched beforing executing new query
+        # else we get a "Unread result error" exception
+        self._connection_options['consume_results'] = True
+
         # Pass connection parameters as keyword arguments to the connection by unpacking the connection_options dict
         try:
             self._conn = mysql.connector.connect(**self._connection_options)
