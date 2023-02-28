@@ -9,7 +9,7 @@ import copy
 import threading
 from ossdbtoolsservice.query.result_set import ResultSet, ResultSetEvents
 from ossdbtoolsservice.query.data_storage import service_buffer_file_stream as file_stream, FileStreamFactory, StorageDataReader
-from ossdbtoolsservice.query.contracts import DbColumn, DbCellValue, ResultSetSubset, SaveResultsRequestParams  # noqa
+from ossdbtoolsservice.query.contracts import DbCellValue, ResultSetSubset  # noqa
 import ossdbtoolsservice.utils as utils
 from ossdbtoolsservice.utils.cancellation import CancellationToken
 from ossdbtoolsservice.exception.OperationCanceledException import OperationCanceledException
@@ -142,7 +142,7 @@ class FileStorageResultSet(ResultSet):
     
     def _send_current_results(self, cancellation_token: CancellationToken):
 
-        while self._has_been_read == False:
+        while not self._has_been_read:
             if cancellation_token.canceled:
                 return
 
