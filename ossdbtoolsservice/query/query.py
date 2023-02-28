@@ -9,15 +9,16 @@ from typing import Callable, Dict, List, Optional  # noqa
 import sqlparse
 from ossdbtoolsservice.driver import ServerConnection
 from ossdbtoolsservice.query import Batch, BatchEvents, create_batch, ResultSetStorageType
-from ossdbtoolsservice.query.contracts import SaveResultsRequestParams, SelectionData
+from ossdbtoolsservice.query.contracts import SaveResultsRequestParams, SelectionData, BatchSummary
 from ossdbtoolsservice.query.data_storage import FileStreamFactory
 from ossdbtoolsservice.query_execution.contracts import QueryCancelResult
 from ossdbtoolsservice.exception.OperationCanceledException import OperationCanceledException
 from ossdbtoolsservice.utils.cancellation import CancellationToken
+from ossdbtoolsservice.query_execution.contracts.message_notification import ResultMessage
 
 
 class QueryEvents:
-    def __init__(self, on_query_started=None, on_query_completed=None, batch_events: BatchEvents = None) -> None:
+    def __init__(self, on_query_started=None, on_query_completed=None, batch_events: BatchEvents=None) -> None:
         self.on_query_started = on_query_started
         self.on_query_completed = on_query_completed
         self.batch_events = batch_events
@@ -62,6 +63,7 @@ class Query:
         self._current_batch_index = 0
         self._batches: List[Batch] = []
         self._execution_plan_options = query_execution_settings.execution_plan_options
+        self._query_events = query_events
 
         # TODO Check if cancelation token can be moved to Query Execution Service
         self._cancellation_token: CancellationToken = CancellationToken()
@@ -85,7 +87,6 @@ class Query:
                 elif self._execution_plan_options.include_actual_execution_plan_xml:
                     self._disable_auto_commit = True
                     sql_statement_text = Query.ANALYZE_EXPLAIN_QUERY_TEMPLATE.format(sql_statement_text)
-
             batch = create_batch(
                 sql_statement_text,
                 len(self.batches),
@@ -114,7 +115,17 @@ class Query:
     @property
     def current_batch_index(self) -> int:
         return self._current_batch_index
-
+    
+    @property
+    def batch_summaries(self) -> List[BatchSummary]:
+        if self.execution_state == ExecutionState.EXECUTED:
+            return [b.batch_summary for b in self.batches]
+        raise Exception("Query has not been executed.")
+    
+    @property
+    def query_events(self) -> QueryEvents:
+        return self._query_events
+    
     def execute(self, connection: ServerConnection):
         """
         Execute the query using the given connection
@@ -133,7 +144,7 @@ class Query:
                 raise OperationCanceledException()
         
             self._execution_state = ExecutionState.EXECUTING
-
+            
             # When Analyze Explain is used we have to disable auto commit
             if self._disable_auto_commit:
                 connection.execute_query('Set autocommit = 0;')
@@ -146,6 +157,9 @@ class Query:
                 connection.execute_query('Set autocommit = 1;')
             self._execution_state = ExecutionState.EXECUTED
 
+            # Call the query execution completed callback
+            self.query_events.on_query_completed(self)
+    
     def get_subset(self, batch_index: int, start_index: int, end_index: int):
         if batch_index < 0 or batch_index >= len(self._batches):
             raise IndexError('Batch index cannot be less than 0 or greater than the number of batches')

@@ -19,7 +19,7 @@ from ossdbtoolsservice.query.in_memory_result_set import InMemoryResultSet
 from ossdbtoolsservice.query.data_storage import FileStreamFactory
 from ossdbtoolsservice.utils.cancellation import CancellationToken
 from ossdbtoolsservice.exception.OperationCanceledException import OperationCanceledException
-
+from ossdbtoolsservice.query.result_set import ResultSetEvents
 
 class ResultSetStorageType(Enum):
     IN_MEMORY = 1,
@@ -28,9 +28,12 @@ class ResultSetStorageType(Enum):
 
 class BatchEvents:
 
-    def __init__(self, on_execution_started=None, on_execution_completed=None, on_result_set_completed=None):
+    def __init__(self, on_execution_started=None, on_execution_completed=None, on_batch_message_sent=None, on_result_set_available=None, on_result_set_updated=None, on_result_set_completed=None):
         self._on_execution_started = on_execution_started
         self._on_execution_completed = on_execution_completed
+        self._on_batch_message_sent = on_batch_message_sent
+        self._on_result_set_available = on_result_set_available
+        self._on_result_set_updated = on_result_set_updated
         self._on_result_set_completed = on_result_set_completed
 
 
@@ -107,7 +110,7 @@ class Batch:
         return self._notices
 
     def get_cursor(self, connection: ServerConnection):
-        return connection.cursor()
+        return connection.cursor(buffered=False)
 
     def execute(self, conn: ServerConnection, cancellation_token: CancellationToken) -> None:
         """
@@ -121,6 +124,7 @@ class Batch:
         
         self._execution_start_time = datetime.now()
 
+        # Call the Batch Execution started callback
         if self._batch_events and self._batch_events._on_execution_started:
             self._batch_events._on_execution_started(self)
         
@@ -133,6 +137,7 @@ class Batch:
             self._has_executed = True
             self._execution_end_time = datetime.now()
 
+            # Call the Batch execution completed callback
             if self._batch_events and self._batch_events._on_execution_completed:
                 self._batch_events._on_execution_completed(self)
 
@@ -156,9 +161,9 @@ class Batch:
             self.create_result_set(cursor, cancellation_token)
 
     def create_result_set(self, cursor, cancellation_token: CancellationToken):
-        result_set = create_result_set(self._storage_type, 0, self.id)
-        result_set.read_result_to_end(cursor, cancellation_token)
-        self._result_set = result_set
+        resultset_events = ResultSetEvents(self._batch_events._on_result_set_available, self._batch_events._on_result_set_updated, self._batch_events._on_result_set_completed)
+        self._result_set = create_result_set(self._storage_type, 0, self.id, resultset_events)
+        self._result_set.read_result_to_end(cursor, cancellation_token)
 
     def get_subset(self, start_index: int, end_index: int):
         return self._result_set.get_subset(start_index, end_index)
@@ -177,22 +182,18 @@ class SelectBatch(Batch):
         Batch.__init__(self, batch_text, ordinal, selection, batch_events, storage_type)
 
     def get_cursor(self, connection: ServerConnection):
-        cursor_name = str(uuid.uuid4())
-        # Named cursors can be created only in the transaction. As our connection has autocommit set to true
-        # there is not transaction concept with it so we need to have withhold to true and as this cursor is local
-        # and we explicitly close it we are good
-        return connection.cursor(name=cursor_name, withhold=True)
+        return connection.cursor(buffered=False)
 
     def after_execute(self, cursor, cancellation_token: CancellationToken) -> None:
         super().create_result_set(cursor, cancellation_token)
 
 
-def create_result_set(storage_type: ResultSetStorageType, result_set_id: int, batch_id: int) -> ResultSet:
+def create_result_set(storage_type: ResultSetStorageType, result_set_id: int, batch_id: int, resultset_events: ResultSetEvents) -> ResultSet:
 
     if storage_type is ResultSetStorageType.FILE_STORAGE:
-        return FileStorageResultSet(result_set_id, batch_id)
+        return FileStorageResultSet(result_set_id, batch_id, resultset_events)
 
-    return InMemoryResultSet(result_set_id, batch_id)
+    return InMemoryResultSet(result_set_id, batch_id, resultset_events)
 
 
 def create_batch(batch_text: str, ordinal: int, selection: SelectionData, batch_events: BatchEvents, storage_type: ResultSetStorageType) -> Batch:

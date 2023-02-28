@@ -94,7 +94,7 @@ class ServerConnection(ABC):
         """
 
     @abstractmethod
-    def cursor(self, **kwargs):
+    def cursor(self, buffered: bool, **kwargs):
         """
         Returns a cursor for the current connection
         """
