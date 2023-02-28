@@ -222,7 +222,7 @@ class MySQLConnection(ServerConnection):
         """
         self._conn.commit()
 
-    def cursor(self, buffered=True):
+    def cursor(self, buffered=True, **kwargs):
         """
         Returns a cursor for the current connection
         :param kwargs will ignored as PyMySQL does not yet support named cursors
