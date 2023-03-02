@@ -72,7 +72,7 @@ steps:
     contents: |
       build/*.zip
       build/*.tar.gz
-      build/mysqltoolsservice*
+      build/mysqltoolsservice/*
     targetFolder: '$(Build.ArtifactStagingDirectory)'
 - task: PublishBuildArtifacts@1
   inputs:
