@@ -18,60 +18,60 @@ steps:
     filePath: $(buildScript)
     arguments: $(buildScriptArgs)
 - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-    displayName: 'Sign out code'
-    inputs:
-      ConnectedServiceName: 'Database System ESRP Connector'
-      FolderPath: '$(agent.builddirectory)/build'
-      Pattern: |
-        *.exe
-      useMinimatch: true
-      signConfigType: inlineSignParams
-      inlineOperation: |
-        [
+  displayName: 'Sign out code'
+  inputs:
+    ConnectedServiceName: 'Database System ESRP Connector'
+    FolderPath: '$(agent.builddirectory)/build'
+    Pattern: |
+      *.exe
+    useMinimatch: true
+    signConfigType: inlineSignParams
+    inlineOperation: |
+      [
+        {
+          "keyCode": "CP-230012",
+          "operationSetCode": "SigntoolSign",
+          "parameters": [
           {
-            "keyCode": "CP-230012",
-            "operationSetCode": "SigntoolSign",
-            "parameters": [
-            {
-              "parameterName": "OpusName",
-              "parameterValue": "Azure Data Studio"
-            },
-            {
-              "parameterName": "OpusInfo",
-              "parameterValue": "https://github.com/microsoft/azuredatastudio"
-            },
-            {
-              "parameterName": "PageHash",
-              "parameterValue": "/NPH"
-            },
-            {
-              "parameterName": "FileDigest",
-              "parameterValue": "/fd sha256"
-            },
-            {
-              "parameterName": "TimeStamp",
-              "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-            }
-            ],
-            "toolName": "signtool.exe",
-            "toolVersion": "6.2.9304.0"
+            "parameterName": "OpusName",
+            "parameterValue": "Azure Data Studio"
           },
           {
-            "keyCode": "CP-230012",
-            "operationSetCode": "SigntoolVerify",
-            "parameters": [
-            {
-              "parameterName": "VerifyAll",
-              "parameterValue": "/all"
-            }
-                ],
-            "toolName": "signtool.exe",
-            "toolVersion": "6.2.9304.0"
+            "parameterName": "OpusInfo",
+            "parameterValue": "https://github.com/microsoft/azuredatastudio"
+          },
+          {
+            "parameterName": "PageHash",
+            "parameterValue": "/NPH"
+          },
+          {
+            "parameterName": "FileDigest",
+            "parameterValue": "/fd sha256"
+          },
+          {
+            "parameterName": "TimeStamp",
+            "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
           }
-        ]
-      SessionTimeout: 600
-      MaxConcurrency: 5
-      MaxRetryAttempts: 20
+          ],
+          "toolName": "signtool.exe",
+          "toolVersion": "6.2.9304.0"
+        },
+        {
+          "keyCode": "CP-230012",
+          "operationSetCode": "SigntoolVerify",
+          "parameters": [
+          {
+            "parameterName": "VerifyAll",
+            "parameterValue": "/all"
+          }
+                ],
+          "toolName": "signtool.exe",
+          "toolVersion": "6.2.9304.0"
+        }
+      ]
+    SessionTimeout: 600
+    MaxConcurrency: 5
+    MaxRetryAttempts: 20
 - task: CopyFiles@2
   inputs:
     sourceFolder: '$(Build.SourcesDirectory)'
