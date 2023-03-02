@@ -14,7 +14,7 @@ steps:
   displayName: 'Sign out code'
   inputs:
     ConnectedServiceName: 'Database System ESRP Connector'
-    FolderPath: '$(agent.builddirectory)/build'
+    FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
     Pattern: |
       *.exe
     useMinimatch: true
@@ -71,6 +71,7 @@ steps:
     contents: |
       build/*.zip
       build/*.tar.gz
+      build/mysqltoolsservice*
     targetFolder: '$(Build.ArtifactStagingDirectory)'
 - task: PublishBuildArtifacts@1
   inputs:
