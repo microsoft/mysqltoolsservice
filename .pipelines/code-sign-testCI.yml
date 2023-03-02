@@ -1,6 +1,6 @@
 trigger: none
 pool:
-  vmImage: windows-latest
+  vmImage: windows-2019
 
 steps:
 - task: UsePythonVersion@0
