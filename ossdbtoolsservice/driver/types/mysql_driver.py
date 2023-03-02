@@ -227,7 +227,9 @@ class MySQLConnection(ServerConnection):
         Returns a cursor for the current connection
         :param kwargs will ignored as PyMySQL does not yet support named cursors
         """
-        self._conn.ping()
+        val2 = self._conn.is_connected()
+        self._conn.ping(reconnect=True, attempts=5, delay=1)
+        self._conn.reconnect(attempts=5, delay=1)
         # Create a new cursor from the current connection
         cursor_instance = self._conn.cursor(buffered=buffered)
 
