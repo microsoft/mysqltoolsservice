@@ -1,13 +1,6 @@
 trigger: none
-
-strategy:
-    windows:
-      imageName: 'windows-latest'
-      buildScript: 'scripts/build.sh'
-      buildScriptArgs: ''
-
 pool:
-  vmImage: $(imageName)
+  vmImage: windows-latest
 
 steps:
 - task: UsePythonVersion@0
@@ -15,8 +8,8 @@ steps:
     versionSpec: '3.10'
 - task: Bash@3
   inputs:
-    filePath: $(buildScript)
-    arguments: $(buildScriptArgs)
+    filePath: 'scripts/build.sh'
+    arguments: ''
 - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
   displayName: 'Sign out code'
   inputs:
