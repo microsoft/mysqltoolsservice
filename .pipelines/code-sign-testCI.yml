@@ -17,6 +17,7 @@ steps:
     FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
     Pattern: |
       *.exe
+      *.dll
     useMinimatch: true
     signConfigType: inlineSignParams
     inlineOperation: |
