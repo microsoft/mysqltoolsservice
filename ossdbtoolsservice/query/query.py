@@ -78,7 +78,7 @@ class Query:
             if not formatted_text or formatted_text == ';':
                 continue
 
-            sql_statement_text = batch_text
+            sql_statement_text = formatted_text
 
             # Create and save the batch
             if bool(self._execution_plan_options):
