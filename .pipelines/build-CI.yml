@@ -44,9 +44,9 @@ steps:
     filePath: $(buildScript)
     arguments: $(buildScriptArgs)
 - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
-  displayName: 'ESRP CodeSigning'
+  displayName: 'Code Signing'
   inputs:
-    ConnectedServiceName: 'Database System ESRP Connector'
+    ConnectedServiceName: 'OrcaSQL ESRP Code Sign'
     FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
     Pattern: |
       *.exe
@@ -94,7 +94,7 @@ steps:
     contents: |
       build/*.zip
       build/*.tar.gz
-      build/mysqltoolsservice
+      build/mysqltoolsservice/*
     targetFolder: '$(Build.ArtifactStagingDirectory)'
 - task: PublishBuildArtifacts@1
   inputs:
