@@ -12,21 +12,25 @@ strategy:
       buildScript: 'scripts/build-linux.sh'
       buildScriptArgs: ''
       archiveType: 'tar'
+      archiveFileName: 'mysqltoolsservice-linux-x64'
     ubuntu22:
       imageName: 'ubuntu-22.04'
       buildScript: 'scripts/build-linux.sh'
       buildScriptArgs: 'ubuntu22'
       archiveType: 'tar'
+      archiveFileName: 'mysqltoolsservice-ubuntu22-x64'
     mac:
       imageName: 'macOS-latest'
       buildScript: 'scripts/build-mac.sh'
       buildScriptArgs: ''
       archiveType: 'tar'
+      archiveFileName: 'mysqltoolsservice-osx'
     windows:
       imageName: 'windows-latest'
       buildScript: 'scripts/build.sh'
       buildScriptArgs: ''
       archiveType: 'zip'
+      archiveFileName: 'mysqltoolsservice-win-x64'
 pool:
   vmImage: $(imageName)
 
@@ -42,3 +46,15 @@ steps:
   inputs:
     rootFolderorFile: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
     archiveType: $(archiveType)
+    archiveFile: '$(Build.SourcesDirectory)/build/$(archiveFileName)'
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: '$(Build.SourcesDirectory)'
+    contents: |
+      build/*.zip
+      build/*.tar.gz
+    targetFolder: '$(Build.ArtifactStagingDirectory)'
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: build
