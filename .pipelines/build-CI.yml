@@ -31,6 +31,7 @@ strategy:
       buildScriptArgs: ''
       archiveType: 'zip'
       archiveFileName: 'mysqltoolsservice-win-x64.zip'
+
 pool:
   vmImage: $(imageName)
 
@@ -42,6 +43,46 @@ steps:
   inputs:
     filePath: $(buildScript)
     arguments: $(buildScriptArgs)
+- task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
+  displayName: 'ESRP CodeSigning'
+  inputs:
+    ConnectedServiceName: 'Database System ESRP Connector'
+    FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
+    Pattern: |
+      *.exe
+      *.dll
+    useMinimatch: true
+    signConfigType: inlineSignParams
+    inlineOperation: |
+      [
+        {
+          "KeyCode" : "CP-230012",
+          "OperationCode" : "SigntoolSign",
+          "Parameters" : {
+              "OpusName" : "Microsoft",
+              "OpusInfo" : "http://www.microsoft.com",
+              "FileDigest" : "/fd \"SHA256\"",
+              "PageHash" : "/NPH",
+              "TimeStamp" : "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+            },
+          "ToolName" : "sign",
+          "ToolVersion" : "1.0"
+        },
+        {
+          "KeyCode" : "CP-230012",
+          "OperationCode" : "SigntoolVerify",
+          "Parameters" : {},
+          "ToolName" : "sign",
+          "ToolVersion" : "1.0"
+        }
+      ]
+    SessionTimeout: 600
+    MaxConcurrency: 5
+    MaxRetryAttempts: 20
+- task: DeleteFiles@1
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
+    Contents: CodeSignSummary*
 - task: ArchiveFiles@2
   inputs:
     rootFolderorFile: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
