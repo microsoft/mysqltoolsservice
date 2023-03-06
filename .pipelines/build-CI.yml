@@ -12,25 +12,25 @@ strategy:
       buildScript: 'scripts/build-linux.sh'
       buildScriptArgs: ''
       archiveType: 'tar'
-      archiveFileName: 'mysqltoolsservice-linux-x64'
+      archiveFileName: 'mysqltoolsservice-linux-x64.tar.gz'
     ubuntu22:
       imageName: 'ubuntu-22.04'
       buildScript: 'scripts/build-linux.sh'
       buildScriptArgs: 'ubuntu22'
       archiveType: 'tar'
-      archiveFileName: 'mysqltoolsservice-ubuntu22-x64'
+      archiveFileName: 'mysqltoolsservice-ubuntu22-x64.tar.gz'
     mac:
       imageName: 'macOS-latest'
       buildScript: 'scripts/build-mac.sh'
       buildScriptArgs: ''
       archiveType: 'tar'
-      archiveFileName: 'mysqltoolsservice-osx'
+      archiveFileName: 'mysqltoolsservice-osx.tar.gz'
     windows:
       imageName: 'windows-latest'
       buildScript: 'scripts/build.sh'
       buildScriptArgs: ''
       archiveType: 'zip'
-      archiveFileName: 'mysqltoolsservice-win-x64'
+      archiveFileName: 'mysqltoolsservice-win-x64.zip'
 pool:
   vmImage: $(imageName)
 
