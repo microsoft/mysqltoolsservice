@@ -11,9 +11,9 @@ steps:
     filePath: 'scripts/build.sh'
     arguments: ''
 - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-  displayName: 'Sign out code'
+  displayName: 'Code Signing'
   inputs:
-    ConnectedServiceName: 'Database System ESRP Connector'
+    ConnectedServiceName: 'OrcaSQL ESRP Code Sign'
     FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
     Pattern: |
       *.exe
@@ -28,11 +28,11 @@ steps:
           "parameters": [
           {
             "parameterName": "OpusName",
-            "parameterValue": "Azure Data Studio"
+            "parameterValue": "MySQL Tools Service"
           },
           {
             "parameterName": "OpusInfo",
-            "parameterValue": "https://github.com/microsoft/azuredatastudio"
+            "parameterValue": "https://github.com/microsoft/mysqltoolsservice"
           },
           {
             "parameterName": "PageHash",
