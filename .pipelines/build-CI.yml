@@ -11,19 +11,22 @@ strategy:
       imageName: 'ubuntu-18.04'
       buildScript: 'scripts/build-linux.sh'
       buildScriptArgs: ''
+      archiveType: 'tar'
     ubuntu22:
       imageName: 'ubuntu-22.04'
       buildScript: 'scripts/build-linux.sh'
       buildScriptArgs: 'ubuntu22'
+      archiveType: 'tar'
     mac:
       imageName: 'macOS-latest'
       buildScript: 'scripts/build-mac.sh'
       buildScriptArgs: ''
+      archiveType: 'tar'
     windows:
       imageName: 'windows-latest'
       buildScript: 'scripts/build.sh'
       buildScriptArgs: ''
-
+      archiveType: 'zip'
 pool:
   vmImage: $(imageName)
 
@@ -35,14 +38,7 @@ steps:
   inputs:
     filePath: $(buildScript)
     arguments: $(buildScriptArgs)
-- task: CopyFiles@2
+- task: ArchiveFiles@2
   inputs:
-    sourceFolder: '$(Build.SourcesDirectory)'
-    contents: |
-      build/*.zip
-      build/*.tar.gz
-    targetFolder: '$(Build.ArtifactStagingDirectory)'
-- task: PublishBuildArtifacts@1
-  inputs:
-    pathToPublish: '$(Build.ArtifactStagingDirectory)'
-    artifactName: build
+    rootFolderorFile: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
+    archiveType: $(archiveType)

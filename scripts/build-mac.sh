@@ -14,17 +14,17 @@ pip3 install -r requirements.txt
 python3 setup.py bdist_mac
 
 # Compress mysqltoolsservice folder
-cd $pwd/build
+# cd $pwd/build
 
 # TODO: Remove this fix done for openssl libraries need to be copied manually in lib folder in mac
-cp mysqltoolsservice/lib* mysqltoolsservice/lib/.
+# cp mysqltoolsservice/lib* mysqltoolsservice/lib/.
 
-if [ "$1" = arm64 ]
-then
-    tar -cvzf mysqltoolsservice-osx-arm64.tar.gz mysqltoolsservice
-else
-    tar -cvzf mysqltoolsservice-osx.tar.gz mysqltoolsservice
-fi
+# if [ "$1" = arm64 ]
+# then
+#     tar -cvzf mysqltoolsservice-osx-arm64.tar.gz mysqltoolsservice
+# else
+#     tar -cvzf mysqltoolsservice-osx.tar.gz mysqltoolsservice
+# fi
 
 # Restore the old PYTHONPATH and move back to the original directory
 cd $pwd
