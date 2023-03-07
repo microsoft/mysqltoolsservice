@@ -124,12 +124,15 @@ class QueryExecutionService(object):
         raise NotImplementedError()
 
     def _handle_simple_execute_request(self, request_context: RequestContext, params: SimpleExecuteRequest):
+        new_owner_uri = str(uuid.uuid4())
         connection_service = self._service_provider[utils.constants.CONNECTION_SERVICE_NAME]
-        connection = connection_service.get_connection(params.owner_uri, ConnectionType.QUERY, request_context)
+        connection_info = connection_service.get_connection_info(params.owner_uri)
+        connection_service.connect(ConnectRequestParams(connection_info.details, new_owner_uri, ConnectionType.QUERY))
+        new_connection = self._get_connection(new_owner_uri, ConnectionType.QUERY, request_context)
 
         execute_params = ExecuteStringParams()
         execute_params.query = params.query_string
-        execute_params.owner_uri = params.owner_uri
+        execute_params.owner_uri = new_owner_uri
 
         def on_query_complete(query_complete_params):
             
@@ -137,7 +140,7 @@ class QueryExecutionService(object):
                 resultset_summary = query_complete_params.batch_summaries[0].result_set_summaries[0]
                 if resultset_summary.row_count > 0 :
                     subset_params = SubsetParams()
-                    subset_params.owner_uri = params.owner_uri
+                    subset_params.owner_uri = new_owner_uri
                     subset_params.batch_index = 0
                     subset_params.result_set_index = 0
                     subset_params.rows_start_index = 0
@@ -156,7 +159,7 @@ class QueryExecutionService(object):
             if message_notification_params.message and message_notification_params.message.is_error:
                 request_context.send_error(message=message_notification_params.message.message)
 
-        worker_args = ExecuteRequestWorkerArgs(params.owner_uri, connection, request_context, ResultSetStorageType.FILE_STORAGE,
+        worker_args = ExecuteRequestWorkerArgs(new_owner_uri, new_connection, request_context, ResultSetStorageType.FILE_STORAGE,
                                                on_query_complete=on_query_complete, on_message_notification=on_message_notification)
 
         self._start_query_execution_thread(request_context, execute_params, worker_args)
