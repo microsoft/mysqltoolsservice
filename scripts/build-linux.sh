@@ -13,15 +13,6 @@ PYTHONPATH=
 pip3 install -r requirements.txt
 python3 setup.py build
 
-# Compress mysqltoolsservice folder
-cd $pwd/build
-if [ "$1" = ubuntu22 ]
-then
-    tar -cvzf mysqltoolsservice-ubuntu22-x64.tar.gz mysqltoolsservice
-else
-    tar -cvzf mysqltoolsservice-linux-x64.tar.gz mysqltoolsservice
-fi
-
 # Restore the old PYTHONPATH and move back to the original directory
 cd $pwd
 PYTHONPATH=$old_pythonpath
