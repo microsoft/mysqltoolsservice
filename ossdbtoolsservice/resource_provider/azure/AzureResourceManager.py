@@ -13,7 +13,7 @@ from azure.mgmt.rdbms.mysql_flexibleservers.models import FirewallRule
 from ossdbtoolsservice.resource_provider.azure.poller.arm_pollers import ARMPollingOverrideRetryAfter
 
 GET_SERVERS_RESOURCE_GRAPH_QUERY = "Resources | where type =~ 'Microsoft.DBforMySQL/flexibleServers'| where name == '{}'"
-FIREWALL_POLLER_TIMEOUT = 15
+FIREWALL_POLLER_TIMEOUT = 20
 
 class AzureResourceManager:
     
