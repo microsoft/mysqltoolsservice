@@ -10,19 +10,23 @@ strategy:
     linux:
       imageName: 'ubuntu-18.04'
       buildScript: 'scripts/build-linux.sh'
-      buildScriptArgs: ''
+      archiveFileName: 'mysqltoolsservice-linux-x64.tar.gz'
+      archiveType: 'tar'
     ubuntu22:
       imageName: 'ubuntu-22.04'
       buildScript: 'scripts/build-linux.sh'
-      buildScriptArgs: 'ubuntu22'
+      archiveFileName: 'mysqltoolsservice-ubuntu22-x64.tar.gz'
+      archiveType: 'tar'
     mac:
       imageName: 'macOS-latest'
       buildScript: 'scripts/build-mac.sh'
-      buildScriptArgs: ''
+      archiveFileName: 'mysqltoolsservice-osx.tar.gz'
+      archiveType: 'tar'
     windows:
       imageName: 'windows-latest'
       buildScript: 'scripts/build.sh'
-      buildScriptArgs: ''
+      archiveFileName: 'mysqltoolsservice-win-x64.zip'
+      archiveType: 'zip'
 
 pool:
   vmImage: $(imageName)
@@ -35,12 +39,26 @@ steps:
   inputs:
     filePath: $(buildScript)
     arguments: $(buildScriptArgs)
+- task: EsrpCodeSigning@2
+  inputs:
+    ConnectedServiceName: 'OrcaSQL ESRP Code Sign'
+    FolderPath: '$(Build.SourcesDirectory)\build\mysqltoolsservice'
+    Pattern: '*.dll,*.exe'
+    signConfigType: 'inlineSignParams'
+    SessionTimeout: '60'
+    MaxConcurrency: '50'
+    MaxRetryAttempts: '5'
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.SourcesDirectory)\build\mysqltoolsservice'
+    includeRootFolder: true
+    archiveType: '$(archiveType)'
+    archiveFile: '$(Build.SourcesDirectory)\build\$(archiveFileName)'
+    replaceExistingArchive: true
 - task: CopyFiles@2
   inputs:
     sourceFolder: '$(Build.SourcesDirectory)'
-    contents: |
-      build/*.zip
-      build/*.tar.gz
+    contents: 'build\$(archiveFileName)'
     targetFolder: '$(Build.ArtifactStagingDirectory)'
 - task: PublishBuildArtifacts@1
   inputs:
