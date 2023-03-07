@@ -42,7 +42,7 @@ steps:
 - task: EsrpCodeSigning@2
   inputs:
     ConnectedServiceName: 'OrcaSQL ESRP Code Sign'
-    FolderPath: '$(Build.SourcesDirectory)\build\mysqltoolsservice'
+    FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
     Pattern: '*.dll,*.exe'
     signConfigType: 'inlineSignParams'
     SessionTimeout: '60'
@@ -50,15 +50,15 @@ steps:
     MaxRetryAttempts: '5'
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(Build.SourcesDirectory)\build\mysqltoolsservice'
+    rootFolderOrFile: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
     includeRootFolder: true
     archiveType: '$(archiveType)'
-    archiveFile: '$(Build.SourcesDirectory)\build\$(archiveFileName)'
+    archiveFile: '$(Build.SourcesDirectory)/build/$(archiveFileName)'
     replaceExistingArchive: true
 - task: CopyFiles@2
   inputs:
     sourceFolder: '$(Build.SourcesDirectory)'
-    contents: 'build\$(archiveFileName)'
+    contents: 'build/$(archiveFileName)'
     targetFolder: '$(Build.ArtifactStagingDirectory)'
 - task: PublishBuildArtifacts@1
   inputs:
