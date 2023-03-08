@@ -49,7 +49,7 @@ steps:
     ConnectedServiceName: 'OrcaSQL ESRP Code Sign'
     FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
     Pattern: |
-      *.exe
+      ossdbtoolsservice_main*
       *.dll
     useMinimatch: true
     signConfigType: inlineSignParams
