@@ -110,6 +110,28 @@ steps:
     rootFolderorFile: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
     archiveType: $(archiveType)
     archiveFile: '$(Build.SourcesDirectory)/build/$(archiveFileName)'
+- task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
+  displayName: 'Code Signing'
+  inputs:
+    ConnectedServiceName: 'OrcaSQL ESRP Code Sign'
+    FolderPath: '$(Build.SourcesDirectory)/build'
+    Pattern: |
+      *
+    useMinimatch: true
+    signConfigType: inlineSignParams
+    inlineOperation: |
+      [
+        {
+          "KeyCode" : "CP-450779-Pgp",
+          "OperationCode" : "PgpClearSign",
+          "Parameters" : {},
+          "ToolName" : "sign",
+          "ToolVersion" : "1.0"
+        }
+      ]
+    SessionTimeout: 600
+    MaxConcurrency: 5
+    MaxRetryAttempts: 20
 - task: CopyFiles@2
   inputs:
     sourceFolder: '$(Build.SourcesDirectory)'
