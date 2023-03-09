@@ -79,28 +79,28 @@ steps:
     SessionTimeout: 600
     MaxConcurrency: 5
     MaxRetryAttempts: 20
-- task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
-  displayName: 'Code Signing'
-  inputs:
-    ConnectedServiceName: 'OrcaSQL ESRP Code Sign'
-    FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
-    Pattern: |
-      *
-    useMinimatch: true
-    signConfigType: inlineSignParams
-    inlineOperation: |
-      [
-        {
-          "KeyCode" : "CP-450779-Pgp",
-          "OperationCode" : "PgpClearSign",
-          "Parameters" : {},
-          "ToolName" : "sign",
-          "ToolVersion" : "1.0"
-        }
-      ]
-    SessionTimeout: 600
-    MaxConcurrency: 5
-    MaxRetryAttempts: 20
+# - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
+#   displayName: 'Code Signing'
+#   inputs:
+#     ConnectedServiceName: 'OrcaSQL ESRP Code Sign'
+#     FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
+#     Pattern: |
+#       *
+#     useMinimatch: true
+#     signConfigType: inlineSignParams
+#     inlineOperation: |
+#       [
+#         {
+#           "KeyCode" : "CP-450779-Pgp",
+#           "OperationCode" : "PgpClearSign",
+#           "Parameters" : {},
+#           "ToolName" : "sign",
+#           "ToolVersion" : "1.0"
+#         }
+#       ]
+#     SessionTimeout: 600
+#     MaxConcurrency: 5
+#     MaxRetryAttempts: 20
 - task: DeleteFiles@1
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
