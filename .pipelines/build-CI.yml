@@ -85,14 +85,14 @@ steps:
     ConnectedServiceName: 'OrcaSQL ESRP Code Sign'
     FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
     Pattern: |
-      *.sig
+      *
     useMinimatch: true
     signConfigType: inlineSignParams
     inlineOperation: |
       [
         {
-          "KeyCode" : "CP-460703-Pgp",
-          "OperationCode" : "LinuxSign",
+          "KeyCode" : "CP-450779-Pgp",
+          "OperationCode" : "PgpClearSign",
           "Parameters" : {},
           "ToolName" : "sign",
           "ToolVersion" : "1.0"
