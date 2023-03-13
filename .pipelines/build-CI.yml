@@ -79,7 +79,7 @@ steps:
     MaxRetryAttempts: '5'
 - task: EsrpCodeSigning@2
   displayName: 'Code Signing for linux and mac'
-  condition: ne($(imageName), 'windows-latest')
+  condition: ne(variables['imageName'], 'windows-latest')
   inputs:
     ConnectedServiceName: 'Database System ESRP Connector'
     FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
