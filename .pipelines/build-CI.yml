@@ -83,7 +83,7 @@ steps:
   inputs:
     ConnectedServiceName: 'Database System ESRP Connector'
     FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
-    Pattern: ''
+    Pattern: '*'
     useMinimatch: true
     signConfigType: inlineSignParams
     inlineOperation: |
@@ -113,8 +113,7 @@ steps:
 #   inputs:
 #     ConnectedServiceName: 'Database System ESRP Connector'
 #     FolderPath: '$(Build.SourcesDirectory)/build'
-#     Pattern: |
-#       *
+#     Pattern: *
 #     useMinimatch: true
 #     signConfigType: inlineSignParams
 #     inlineOperation: |
