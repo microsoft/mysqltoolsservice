@@ -38,7 +38,7 @@ steps:
     filePath: $(buildScript)
     arguments: $(buildScriptArgs)
 - task: EsrpCodeSigning@2
-  displayName: 'Code Signing'
+  displayName: 'Code Signing for windows'
   condition: eq(variables['imageName'], 'windows-latest')
   inputs:
     ConnectedServiceName: 'Database System ESRP Connector'
