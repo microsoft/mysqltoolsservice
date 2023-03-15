@@ -238,7 +238,7 @@ class MySQLConnection(ServerConnection):
 
         return cursor_instance
 
-    def execute_query(self, query: str, all=True):
+    def execute_query(self, query: str, all=True, throw_exception=False):
         """
         Execute a simple query without arguments for the given connection
         :raises an error: if there was no result set when executing the query
@@ -253,12 +253,14 @@ class MySQLConnection(ServerConnection):
                     else:
                         query_results = cursor.fetchone()
                     return query_results
-            except Exception:
+            except Exception as e:
+                if throw_exception:
+                    raise e
                 return False
             finally:
                 cursor.close()
 
-    def execute_dict(self, query: str, params=None):
+    def execute_dict(self, query: str, params=None, throw_exception=False):
         """
         Executes a query and returns the results as an ordered list of dictionaries that map column
         name to value. Columns are returned, as well.
@@ -283,6 +285,8 @@ class MySQLConnection(ServerConnection):
                             rows.append(row_dict)
                     return col_names, rows
             except Exception:
+                if throw_exception:
+                    raise e
                 return False
             finally:
                 cursor.close()

@@ -100,14 +100,14 @@ class ServerConnection(ABC):
         """
 
     @abstractmethod
-    def execute_query(self, query: str, all=True):
+    def execute_query(self, query: str, all=True, throw_exception=False):
         """
         Execute a simple query without arguments for the given connection
         :raises an error: if there was no result set when executing the query
         """
 
     @abstractmethod
-    def execute_dict(self, query: str, params=None):
+    def execute_dict(self, query: str, params=None, throw_exception=False):
         """
         Executes a query and returns the results as an ordered list of dictionaries that map column
         name to value. Columns are returned, as well.
