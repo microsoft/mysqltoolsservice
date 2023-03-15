@@ -47,6 +47,8 @@ from ossdbtoolsservice.query_execution.contracts.save_result_as_request import (
     SaveResultsAsCsvRequestParams, SaveResultsAsExcelRequestParams, SaveResultsAsXmlRequestParams
 )
 
+from ossdbtoolsservice.query_execution.contracts.serialization import ( SERIALIZE_START_REQUEST, SERIALIZE_CONTINUE_REQUEST, SerializeDataStartRequestParams, SerializeDataContinueRequestParams, SerializeDataResult)
+
 __all__ = [
     'BatchNotificationParams',
     'BATCH_START_NOTIFICATION', 'BATCH_COMPLETE_NOTIFICATION', 'DEPLOY_BATCH_COMPLETE_NOTIFICATION', 'DEPLOY_BATCH_START_NOTIFICATION',
@@ -60,5 +62,6 @@ __all__ = [
     'SIMPLE_EXECUTE_REQUEST', 'SimpleExecuteRequest', 'SimpleExecuteResponse', 'EXECUTE_DOCUMENT_STATEMENT_REQUEST',
     'ExecuteDocumentStatementParams', 'SAVE_AS_CSV_REQUEST', 'SAVE_AS_JSON_REQUEST', 'SERIALIZATION_OPTIONS', 'SAVE_AS_EXCEL_REQUEST', 'SAVE_AS_XML_REQUEST',
     'SaveResultRequestResult', 'SaveResultsAsCsvRequestParams', 'SaveResultsAsExcelRequestParams',
-    'SaveResultsAsJsonRequestParams', 'SaveResultsAsXmlRequestParams'
+    'SaveResultsAsJsonRequestParams', 'SaveResultsAsXmlRequestParams',
+    'SERIALIZE_START_REQUEST', 'SERIALIZE_CONTINUE_REQUEST', 'SerializeDataStartRequestParams', 'SerializeDataContinueRequestParams', 'SerializeDataResult'
 ]
