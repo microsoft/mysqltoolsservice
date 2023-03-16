@@ -13,8 +13,6 @@ from ossdbtoolsservice.new_database.contracts.charset_info import CharsetInfo
 from ossdbtoolsservice.new_database.contracts.create_database_request import CREATE_DATABASE_REQUEST, CreateDatabaseRequest
 from ossdbtoolsservice.new_database.contracts.get_charsets_request import GET_CHARSETS_REQUEST, GetCharsetsRequest, GetCharsetsResponse
 from ossdbtoolsservice.new_database.contracts.get_collations_request import GET_COLLATIONS_REQUEST, GetCollationsRequest, GetCollationsResponse
-from ossdbtoolsservice.query.batch import ResultSetStorageType
-from ossdbtoolsservice.query.query import Query, QueryEvents, QueryExecutionSettings
 import ossdbtoolsservice.utils.constants as constants
 
 
@@ -71,14 +69,6 @@ class NewDatabaseService(object):
             request_context.send_response(None)
         except Exception as e:
             request_context.send_unhandled_error_response(e, OssdbErrorConstants.NEW_DATABASE_CREATE_ERROR_CODE)
-    
-    def _create_query(self, owner_uri: str, query_str: str) -> Query :
-        return Query(
-            owner_uri,
-            query_str,
-            QueryExecutionSettings(None, ResultSetStorageType.FILE_STORAGE),
-            QueryEvents()
-        )
 
     def _get_connection_for_query(self, owner_uri: str) -> ServerConnection :
         connection_service = self._service_provider[constants.CONNECTION_SERVICE_NAME]
