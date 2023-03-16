@@ -284,7 +284,7 @@ class MySQLConnection(ServerConnection):
                             row_dict = {col_names[index]: row for index, row in enumerate(row)}
                             rows.append(row_dict)
                     return col_names, rows
-            except Exception:
+            except Exception as e:
                 if throw_exception:
                     raise e
                 return False
