@@ -13,14 +13,11 @@ from ossdbtoolsservice.new_database.contracts.charset_info import CharsetInfo
 from ossdbtoolsservice.new_database.contracts.create_database_request import CREATE_DATABASE_REQUEST, CreateDatabaseRequest
 from ossdbtoolsservice.new_database.contracts.get_charsets_request import GET_CHARSETS_REQUEST, GetCharsetsRequest, GetCharsetsResponse
 from ossdbtoolsservice.new_database.contracts.get_collations_request import GET_COLLATIONS_REQUEST, GetCollationsRequest, GetCollationsResponse
-from ossdbtoolsservice.query.batch import ResultSetStorageType
-from ossdbtoolsservice.query.contracts.result_set_subset import ResultSetSubset
-from ossdbtoolsservice.query.query import Query, QueryEvents, QueryExecutionSettings
 import ossdbtoolsservice.utils.constants as constants
 
 
 GET_CHARSETS_QUERY = "SELECT CHARACTER_SET_NAME, DEFAULT_COLLATE_NAME from INFORMATION_SCHEMA.CHARACTER_SETS ;"
-GET_COLLATIONS_QUERY = "SELECT COLLATION_NAME FROM INFORMATION_SCHEMA.COLLATIONS WHERE CHARACTER_SET_NAME = '{}'"
+GET_COLLATIONS_QUERY = "SELECT COLLATION_NAME FROM INFORMATION_SCHEMA.COLLATIONS WHERE CHARACTER_SET_NAME = '{}' ;"
 CREATE_DATABASE_QUERY = "CREATE DATABASE `{}`"
 CHARSET_SUFFIX_DATABASE_QUERY = " CHARACTER SET = '{}'"
 COLLATION_SUFFIX_DATABASE_QUERY = " COLLATE = '{}'"
@@ -47,56 +44,46 @@ class NewDatabaseService(object):
             self._service_provider.logger.info('New database service successfully initialized')
 
     def _handle_get_charsets_request(self, request_context: RequestContext, params: GetCharsetsRequest):
-        query: Query = self._create_query(params.owner_uri, GET_CHARSETS_QUERY)
+        query_str = GET_CHARSETS_QUERY
         connection = self._get_connection_for_query(params.owner_uri)
         try:
-            query.execute(connection)
-            request_context.send_response(self._build_get_charsets_response(query))
+            columns, rows = connection.execute_dict(query=query_str, throw_exception=True)
+            request_context.send_response(self._build_get_charsets_response(columns, rows))
         except Exception as e:
             request_context.send_unhandled_error_response(e, OssdbErrorConstants.NEW_DATABASE_GET_CHARSETS_ERROR_CODE)
     
     def _handle_get_collations_request(self, request_context: RequestContext, params: GetCollationsRequest):
-        query: Query = self._create_query(params.owner_uri, GET_COLLATIONS_QUERY.format(params.charset))
+        query_str = GET_COLLATIONS_QUERY.format(params.charset)
         connection = self._get_connection_for_query(params.owner_uri)
         try:
-            query.execute(connection)
-            request_context.send_response(self._build_get_collations_response(query))
+            columns, rows = connection.execute_dict(query=query_str, throw_exception=True)
+            request_context.send_response(self._build_get_collations_response(columns, rows))
         except Exception as e:
             request_context.send_unhandled_error_response(e, OssdbErrorConstants.NEW_DATABASE_GET_COLLATIONS_ERROR_CODE)
     
     def _handle_create_database_request(self, request_context: RequestContext, params: CreateDatabaseRequest):
-        query: Query = self._create_query(params.owner_uri, self._build_create_database_query(params))
+        query_str = self._build_create_database_query(params)
         connection = self._get_connection_for_query(params.owner_uri)
         try:
-            query.execute(connection)
+            connection.execute_dict(query=query_str, throw_exception=True)
             request_context.send_response(None)
         except Exception as e:
             request_context.send_unhandled_error_response(e, OssdbErrorConstants.NEW_DATABASE_CREATE_ERROR_CODE)
-    
-    def _create_query(self, owner_uri: str, query_str: str) -> Query :
-        return Query(
-            owner_uri,
-            query_str,
-            QueryExecutionSettings(None, ResultSetStorageType.FILE_STORAGE),
-            QueryEvents()
-        )
 
     def _get_connection_for_query(self, owner_uri: str) -> ServerConnection :
         connection_service = self._service_provider[constants.CONNECTION_SERVICE_NAME]
         return connection_service.get_connection(owner_uri, ConnectionType.QUERY)
 
-    def _build_get_charsets_response(self, query: Query) -> GetCharsetsResponse :
-        result_set_subset: ResultSetSubset = query.get_subset(0, 0, query.batches[0].row_count)
+    def _build_get_charsets_response(self, columns: list[str], rows: list[dict]) -> GetCharsetsResponse :
         charsets = []
-        for row in result_set_subset.rows :
-            charsets.append(CharsetInfo(row[0].display_value, row[1].display_value))
+        for row in rows :
+            charsets.append(CharsetInfo(row[columns[0]], row[columns[1]]))
         return GetCharsetsResponse(charsets)
     
-    def _build_get_collations_response(self, query: Query) -> GetCollationsResponse :
-        result_set_subset: ResultSetSubset = query.get_subset(0, 0, query.batches[0].row_count)
+    def _build_get_collations_response(self, columns: list[str], rows: list[dict]) -> GetCollationsResponse :
         collations = []
-        for row in result_set_subset.rows :
-            collations.append(row[0].display_value)
+        for row in rows :
+            collations.append(row[columns[0]])
         return GetCollationsResponse(collations)
     
     def _build_create_database_query(self, params: CreateDatabaseRequest) -> str :
