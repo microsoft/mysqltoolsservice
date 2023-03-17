@@ -37,6 +37,12 @@ steps:
   inputs:
     filePath: $(buildScript)
     arguments: $(buildScriptArgs)
+- task: CmdLine@2
+  condition: ne(variables['imageName'], 'windows-latest')
+  displayName: 'pre sign perm'
+  inputs:
+    script: |
+      ls -latr $(Build.SourcesDirectory)/build/mysqltoolsservice/*
 - task: EsrpCodeSigning@2
   displayName: 'Code Signing for windows'
   condition: eq(variables['imageName'], 'windows-latest')
@@ -94,6 +100,12 @@ steps:
     SessionTimeout: '60'
     MaxConcurrency: '50'
     MaxRetryAttempts: '5'
+- task: CmdLine@2
+  condition: ne(variables['imageName'], 'windows-latest')
+  displayName: 'post sign perm'
+  inputs:
+    script: |
+      ls -latr $(Build.SourcesDirectory)/build/mysqltoolsservice/*
 - task: DeleteFiles@1
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
