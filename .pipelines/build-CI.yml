@@ -43,6 +43,12 @@ steps:
   inputs:
     script: |
       ls -latr $(Build.SourcesDirectory)/build/mysqltoolsservice/*
+- task: CmdLine@2
+  condition: eq(variables['imageName'], 'windows-latest')
+  displayName: 'pre sign perm'
+  inputs:
+    script: |
+      dir
 - task: EsrpCodeSigning@2
   displayName: 'Code Signing for windows'
   condition: eq(variables['imageName'], 'windows-latest')
@@ -106,6 +112,12 @@ steps:
   inputs:
     script: |
       ls -latr $(Build.SourcesDirectory)/build/mysqltoolsservice/*
+- task: CmdLine@2
+  condition: eq(variables['imageName'], 'windows-latest')
+  displayName: 'post sign perm'
+  inputs:
+    script: |
+      dir
 - task: DeleteFiles@1
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
