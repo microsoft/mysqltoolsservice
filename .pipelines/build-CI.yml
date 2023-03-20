@@ -48,7 +48,7 @@ steps:
   displayName: 'pre sign perm'
   inputs:
     script: |
-      dir
+      get-acl $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main.exe
 - task: EsrpCodeSigning@2
   displayName: 'Code Signing for windows'
   condition: eq(variables['imageName'], 'windows-latest')
@@ -117,7 +117,7 @@ steps:
   displayName: 'post sign perm'
   inputs:
     script: |
-      dir
+      get-acl $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main.exe
 - task: DeleteFiles@1
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
