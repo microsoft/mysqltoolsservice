@@ -24,9 +24,6 @@ strategy:
       archiveType: 'zip'
 pool:
   vmImage: $(imageName)
-variables:
-- name: Codeql.Enabled
-  value: true
 steps:
 - task: UsePythonVersion@0
   inputs:
@@ -35,6 +32,14 @@ steps:
   inputs:
     filePath: $(buildScript)
     arguments: $(buildScriptArgs)
+- task: Semmle@1
+  inputs:
+    sourceCodeDirectory: '$(Build.SourcesDirectory)'
+    language: 'python'
+    querySuite: 'Recommended'
+    timeout: '1800'
+    ram: '16384'
+    addProjectDirToScanningExclusionList: true
 - task: EsrpCodeSigning@2
   displayName: 'Code Signing for windows'
   condition: eq(variables['imageName'], 'windows-latest')
