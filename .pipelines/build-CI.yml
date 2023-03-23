@@ -29,6 +29,9 @@ strategy:
       archiveType: 'zip'
 pool:
   vmImage: $(imageName)
+variables:
+- name: Codeql.Enabled
+  value: true
 steps:
 - task: UsePythonVersion@0
   inputs:
