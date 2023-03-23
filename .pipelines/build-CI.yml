@@ -37,6 +37,12 @@ steps:
   inputs:
     filePath: $(buildScript)
     arguments: $(buildScriptArgs)
+- task: BinSkim@4
+  inputs:
+    InputType: 'Basic'
+    Function: 'analyze'
+    TargetPattern: 'guardianGlob'
+    AnalyzeTargetGlob: '$(Build.ArtifactStagingDirectory)/build/**.dll;$(Build.ArtifactStagingDirectory)/build/**.exe;'
 - task: EsrpCodeSigning@2
   displayName: 'Code Signing for windows'
   condition: eq(variables['imageName'], 'windows-latest')
