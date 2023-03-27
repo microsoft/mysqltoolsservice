@@ -24,110 +24,129 @@ strategy:
       archiveType: 'zip'
 pool:
   vmImage: $(imageName)
-steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '3.10'
-- task: Bash@3
-  inputs:
-    filePath: $(buildScript)
-    arguments: $(buildScriptArgs)
-- task: EsrpCodeSigning@2
-  displayName: 'Code Signing for windows'
-  condition: eq(variables['imageName'], 'windows-latest')
-  inputs:
-    ConnectedServiceName: 'Database System ESRP Connector'
-    FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
-    Pattern: '*.exe,*.dll'
-    useMinimatch: true
-    signConfigType: inlineSignParams
-    inlineOperation: |
-      [
-        {
-          "KeyCode" : "CP-230012",
-          "OperationCode" : "SigntoolSign",
-          "Parameters" : {
-              "OpusName" : "Microsoft",
-              "OpusInfo" : "http://www.microsoft.com",
-              "FileDigest" : "/fd \"SHA256\"",
-              "PageHash" : "/NPH",
-              "TimeStamp" : "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-            },
-          "ToolName" : "sign",
-          "ToolVersion" : "1.0"
-        },
-        {
-          "KeyCode" : "CP-230012",
-          "OperationCode" : "SigntoolVerify",
-          "Parameters" : {},
-          "ToolName" : "sign",
-          "ToolVersion" : "1.0"
-        }
-      ]
-    SessionTimeout: '60'
-    MaxConcurrency: '50'
-    MaxRetryAttempts: '5'
-- task: EsrpCodeSigning@2
-  displayName: 'Code Signing for linux'
+jobs:
+- job: Compile
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.10'
+  - task: Bash@3
+    inputs:
+      filePath: $(buildScript)
+      arguments: $(buildScriptArgs)
+- job: Windows-Code-Sign
+  dependsOn: Compile
+  condition: eq(variables['imageName'], 'windows-latest') 
+  steps:
+  - task: EsrpCodeSigning@2
+    displayName: 'Code Signing for windows'
+    inputs:
+      ConnectedServiceName: 'Database System ESRP Connector'
+      FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
+      Pattern: '*.exe,*.dll'
+      useMinimatch: true
+      signConfigType: inlineSignParams
+      inlineOperation: |
+        [
+          {
+            "KeyCode" : "CP-230012",
+            "OperationCode" : "SigntoolSign",
+            "Parameters" : {
+                "OpusName" : "Microsoft",
+                "OpusInfo" : "http://www.microsoft.com",
+                "FileDigest" : "/fd \"SHA256\"",
+                "PageHash" : "/NPH",
+                "TimeStamp" : "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+              },
+            "ToolName" : "sign",
+            "ToolVersion" : "1.0"
+          },
+          {
+            "KeyCode" : "CP-230012",
+            "OperationCode" : "SigntoolVerify",
+            "Parameters" : {},
+            "ToolName" : "sign",
+            "ToolVersion" : "1.0"
+          }
+        ]
+      SessionTimeout: '60'
+      MaxConcurrency: '50'
+      MaxRetryAttempts: '5'
+- job: Linux-Code-Sign
+  dependsOn: Compile
   condition: in(variables['imageName'], 'ubuntu-22.04', 'ubuntu-18.04')
-  inputs:
-    ConnectedServiceName: 'Database System ESRP Connector'
-    FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
-    Pattern: '*'
-    useMinimatch: true
-    signConfigType: inlineSignParams
-    inlineOperation: |
-      [
-        {
-          "KeyCode" : "CP-450779-Pgp",
-          "OperationCode" : "PgpClearSign",
-          "Parameters" : {},
-          "ToolName" : "sign",
-          "ToolVersion" : "1.0"
-        }
-      ]
-    SessionTimeout: '60'
-    MaxConcurrency: '50'
-    MaxRetryAttempts: '5'
-- task: EsrpCodeSigning@2
-  displayName: 'Code Signing for apple'
+  steps:
+  - task: EsrpCodeSigning@2
+    displayName: 'Code Signing for linux'
+    inputs:
+      ConnectedServiceName: 'Database System ESRP Connector'
+      FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
+      Pattern: '*'
+      useMinimatch: true
+      signConfigType: inlineSignParams
+      inlineOperation: |
+        [
+          {
+            "KeyCode" : "CP-450779-Pgp",
+            "OperationCode" : "PgpClearSign",
+            "Parameters" : {},
+            "ToolName" : "sign",
+            "ToolVersion" : "1.0"
+          }
+        ]
+      SessionTimeout: '60'
+      MaxConcurrency: '50'
+      MaxRetryAttempts: '5'
+- job: Apple-Code-Sign
+  dependsOn: Compile
   condition: eq(variables['imageName'], 'macOS-latest')
-  inputs:
-    ConnectedServiceName: 'Database System ESRP Connector'
-    FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
-    Pattern: '*'
-    useMinimatch: true
-    signConfigType: inlineSignParams
-    inlineOperation: |
-      [
-        {
-          "KeyCode": "CP-401337-Apple",
-          "OperationCode": "MacAppDeveloperSign",
-          "ToolName": "sign",
-          "ToolVersion": "1.0",
-          "Parameters": {}
-        }
-      ]
-    SessionTimeout: '60'
-    MaxConcurrency: '50'
-    MaxRetryAttempts: '5'
-- task: DeleteFiles@1
-  inputs:
-    SourceFolder: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
-    Contents: 'CodeSignSummary*.md'
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
-    includeRootFolder: true
-    archiveType: '$(archiveType)'
-    archiveFile: '$(Build.SourcesDirectory)/build/$(archiveFileName)'
-    replaceExistingArchive: true
-- task: CopyFiles@2
-  inputs:
-    sourceFolder: '$(Build.SourcesDirectory)'
-    contents: 'build/$(archiveFileName)'
-    targetFolder: '$(Build.ArtifactStagingDirectory)'
-- task: PublishBuildArtifacts@1
-  inputs:
-    pathToPublish: '$(Build.ArtifactStagingDirectory)'
-    artifactName: build
+  steps:
+  - task: EsrpCodeSigning@2
+    displayName: 'Code Signing for apple'
+    condition: eq(variables['imageName'], 'macOS-latest')
+    inputs:
+      ConnectedServiceName: 'Database System ESRP Connector'
+      FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
+      Pattern: '*'
+      useMinimatch: true
+      signConfigType: inlineSignParams
+      inlineOperation: |
+        [
+          {
+            "KeyCode": "CP-233029-Apple",
+            "OperationCode": "MacAppThirdPartySign",
+            "ToolName": "sign",
+            "ToolVersion": "1.0",
+            "Parameters": {}
+          }
+        ]  
+      SessionTimeout: '60'
+      MaxConcurrency: '50'
+      MaxRetryAttempts: '5'
+- job: Publish
+  dependsOn:
+  - Compile
+  - Windows-Code-Sign
+  - Linix-Code-Sign
+  - Apple-Code-Sign
+  steps:
+  - task: DeleteFiles@1
+    inputs:
+      SourceFolder: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
+      Contents: 'CodeSignSummary*.md'
+  - task: ArchiveFiles@2
+    inputs:
+      rootFolderOrFile: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
+      includeRootFolder: true
+      archiveType: '$(archiveType)'
+      archiveFile: '$(Build.SourcesDirectory)/build/$(archiveFileName)'
+      replaceExistingArchive: true
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)'
+      contents: 'build/$(archiveFileName)'
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: build
