@@ -1,8 +1,3 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger: none
 pr: none
 strategy:
@@ -72,28 +67,7 @@ steps:
     SessionTimeout: '60'
     MaxConcurrency: '50'
     MaxRetryAttempts: '5'
-- task: EsrpCodeSigning@2
-  displayName: 'Code Signing for linux and mac'
-  condition: ne(variables['imageName'], 'windows-latest')
-  inputs:
-    ConnectedServiceName: 'Database System ESRP Connector'
-    FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
-    Pattern: '*'
-    useMinimatch: true
-    signConfigType: inlineSignParams
-    inlineOperation: |
-      [
-        {
-          "KeyCode" : "CP-450779-Pgp",
-          "OperationCode" : "PgpClearSign",
-          "Parameters" : {},
-          "ToolName" : "sign",
-          "ToolVersion" : "1.0"
-        }
-      ]
-    SessionTimeout: '60'
-    MaxConcurrency: '50'
-    MaxRetryAttempts: '5'
+- template: template/code-sign.yml
 - task: DeleteFiles@1
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
