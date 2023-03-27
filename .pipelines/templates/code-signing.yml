@@ -68,5 +68,5 @@ steps:
   condition: ne(variables['imageName'], 'windows-latest')
   inputs:
     script: |
-      cp $(Build.SourcesDirectory)/build/ossdbtoolsservice_main $(Build.SourcesDirectory)/build/mysqltoolsservice
+      mv $(Build.SourcesDirectory)/build/ossdbtoolsservice_main $(Build.SourcesDirectory)/build/mysqltoolsservice
 
