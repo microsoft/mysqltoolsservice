@@ -67,7 +67,8 @@ steps:
     SessionTimeout: '60'
     MaxConcurrency: '50'
     MaxRetryAttempts: '5'
-- template: templates/code-sign.yml
+- ${{ if ne(variables['imageName'], 'windows-latest') }}:
+  - template: templates/code-sign.yml
 - task: DeleteFiles@1
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
