@@ -16,7 +16,7 @@ steps:
         [
           {
             "KeyCode" : "CP-450779-Pgp",
-            "OperationCode" : "PgpClearSign",
+            "OperationCode" : "LinuxSign",
             "Parameters" : {},
             "ToolName" : "sign",
             "ToolVersion" : "1.0"
