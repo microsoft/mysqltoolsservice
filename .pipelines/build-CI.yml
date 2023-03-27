@@ -32,10 +32,7 @@ steps:
   inputs:
     filePath: $(buildScript)
     arguments: $(buildScriptArgs)
-- ${{ if eq(variables['imageName'], 'windows-latest') }}:
-  - template: templates/code-sign-windows.yml
-- ${{ if ne(variables['imageName'], 'windows-latest') }}:
-  - template: templates/code-sign-non-windows.yml
+- template: templates/code-signing.yml
 - task: DeleteFiles@1
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
