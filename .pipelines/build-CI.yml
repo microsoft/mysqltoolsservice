@@ -32,42 +32,10 @@ steps:
   inputs:
     filePath: $(buildScript)
     arguments: $(buildScriptArgs)
-- task: EsrpCodeSigning@2
-  displayName: 'Code Signing for windows'
-  condition: eq(variables['imageName'], 'windows-latest')
-  inputs:
-    ConnectedServiceName: 'Database System ESRP Connector'
-    FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
-    Pattern: '*.exe,*.dll'
-    useMinimatch: true
-    signConfigType: inlineSignParams
-    inlineOperation: |
-      [
-        {
-          "KeyCode" : "CP-230012",
-          "OperationCode" : "SigntoolSign",
-          "Parameters" : {
-              "OpusName" : "Microsoft",
-              "OpusInfo" : "http://www.microsoft.com",
-              "FileDigest" : "/fd \"SHA256\"",
-              "PageHash" : "/NPH",
-              "TimeStamp" : "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-            },
-          "ToolName" : "sign",
-          "ToolVersion" : "1.0"
-        },
-        {
-          "KeyCode" : "CP-230012",
-          "OperationCode" : "SigntoolVerify",
-          "Parameters" : {},
-          "ToolName" : "sign",
-          "ToolVersion" : "1.0"
-        }
-      ]
-    SessionTimeout: '60'
-    MaxConcurrency: '50'
-    MaxRetryAttempts: '5'
-- template: templates/code-sign.yml
+- ${{ if eq(variables['imageName'], 'windows-latest') }}:
+  - template: templates/code-sign-windows.yml
+- ${{ if ne(variables['imageName'], 'windows-latest') }}:
+  - template: templates/code-sign-non-windows.yml
 - task: DeleteFiles@1
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
