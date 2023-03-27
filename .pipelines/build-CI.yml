@@ -20,7 +20,7 @@ steps:
     downloadDirectory: '$(Build.SourcesDirectory)/build' 
 - task: ExtractFiles@1
   inputs:
-    archiveFilePatterns: '**/*.tar'
+    archiveFilePatterns: '**/*.tar.gz'
     destinationFolder: $(Build.SourcesDirectory)/build
 - task: CmdLine@2
   inputs:
