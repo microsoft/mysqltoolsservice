@@ -3,6 +3,7 @@ steps:
     inputs:
       script: |
         cp $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main $(Build.SourcesDirectory)/build
+        mv $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main_sig
   - task: EsrpCodeSigning@2
     displayName: 'Code Signing for linux and mac'
     inputs:
@@ -27,6 +28,5 @@ steps:
   - task: CmdLine@2
     inputs:
       script: |
-        mv $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main_sig
         cp $(Build.SourcesDirectory)/build/ossdbtoolsservice_main $(Build.SourcesDirectory)/build/mysqltoolsservice
 
