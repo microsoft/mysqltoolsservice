@@ -1,11 +1,13 @@
 steps:
   - task: CmdLine@2
+    condition: ne(variables['imageName'], 'windows-latest')
     inputs:
       script: |
         cp $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main $(Build.SourcesDirectory)/build
         mv $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main_sig
   - task: EsrpCodeSigning@2
     displayName: 'Code Signing for linux and mac'
+    condition: ne(variables['imageName'], 'windows-latest')
     inputs:
       ConnectedServiceName: 'Database System ESRP Connector'
       FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
@@ -26,6 +28,7 @@ steps:
       MaxConcurrency: '50'
       MaxRetryAttempts: '5'
   - task: CmdLine@2
+    condition: ne(variables['imageName'], 'windows-latest')
     inputs:
       script: |
         cp $(Build.SourcesDirectory)/build/ossdbtoolsservice_main $(Build.SourcesDirectory)/build/mysqltoolsservice
