@@ -17,9 +17,13 @@ steps:
     vstsFeed: 'Database Systems/azuredatastudio-mysql'
     vstsFeedPackage: 'mysqltoolsservice-osx-arm'
     vstsPackageVersion: '0.0.1'
-    downloadDirectory: '$(Build.SourcesDirectory)/build'
+    downloadDirectory: '$(Build.SourcesDirectory)/build' 
+- task: ExtractFiles@1
+  inputs:
+    archiveFilePatterns: '**/*.tar'
+    destinationFolder: $(Build.SourcesDirectory)/build
 - task: CmdLine@2
   inputs:
     script: |
       cd '$(Build.SourcesDirectory)/build'
-      ls 
+      ls
