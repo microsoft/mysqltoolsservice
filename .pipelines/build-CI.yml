@@ -26,7 +26,6 @@ strategy:
       buildScript: 'scripts/build.sh'
       archiveFileName: 'mysqltoolsservice-win-x64.zip'
       archiveType: 'zip'
-    
 pool:
   vmImage: $(imageName)
 steps:
