@@ -6,6 +6,13 @@ steps:
     script: |
       cp $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main $(Build.SourcesDirectory)/build
       mv $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main_sig
+- task: CmdLine@2
+  displayName: 'show contents'
+  condition: eq(variables['imageName'], 'windows-latest')
+  inputs:
+    script: |
+      cd $(Build.SourcesDirectory)/build/mysqltoolsservice
+      ls
 - task: EsrpCodeSigning@2
   displayName: 'Code Signing for windows'
   condition: eq(variables['imageName'], 'windows-latest')
