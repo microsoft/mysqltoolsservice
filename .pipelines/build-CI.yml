@@ -42,7 +42,7 @@ steps:
     InputType: 'Basic'
     Function: 'analyze'
     TargetPattern: 'guardianGlob'
-    AnalyzeTargetGlob: '$(Build.ArtifactStagingDirectory)/build/**.dll;$(Build.ArtifactStagingDirectory)/build/**.exe;'
+    AnalyzeTargetGlob: '$(Build.SourcesDirectory)/build/mysqltoolsservice**.dll;$(Build.SourcesDirectory)/build/mysqltoolsservice**.exe;'
 - task: EsrpCodeSigning@2
   displayName: 'Code Signing for windows'
   condition: eq(variables['imageName'], 'windows-latest')
