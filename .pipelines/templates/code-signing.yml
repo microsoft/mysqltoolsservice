@@ -38,14 +38,14 @@ steps:
       SessionTimeout: '60'
       MaxConcurrency: '50'
       MaxRetryAttempts: '5'
-- ${{ if ne(parameters.vmImage, 'windows') }}:
+- ${{ if not(eq(parameters.vmImage, 'windows')) }}:
   - task: CmdLine@2
     displayName: 'Pre-sign steps for non-windows platform'
     inputs:
       script: |
         cp $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main $(Build.SourcesDirectory)/build
         mv $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main_sig
-- ${{ if ne(parameters.vmImage, 'windows') }}:
+- ${{ if not(eq(parameters.vmImage, 'windows')) }}:
   - task: EsrpCodeSigning@2
     displayName: 'Code Signing for linux and mac'
     condition: ne(parameters.vmImage, 'windows')
@@ -68,7 +68,7 @@ steps:
       SessionTimeout: '60'
       MaxConcurrency: '50'
       MaxRetryAttempts: '5'
-- ${{ if ne(parameters.vmImage, 'windows') }}:
+- ${{ if not(eq(parameters.vmImage, 'windows')) }}:
   - task: CmdLine@2
     displayName: 'Post-sign steps for non-windows platforms'
     condition: ne(parameters.vmImage, 'windows')

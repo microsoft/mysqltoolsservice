@@ -2,11 +2,11 @@ parameters:
 - name: vmImage
   default: 'windows'
 steps:
-- ${{ if ne(parameters.vmImage, 'mac-arm64') }}:
+- ${{ if not(eq(parameters.vmImage, 'mac-arm64')) }}:
   - task: UsePythonVersion@0
     inputs:
       versionSpec: '3.10'
-- ${{ if ne(parameters.vmImage, 'mac-arm64') }}:
+- ${{ if not(eq(parameters.vmImage, 'mac-arm64')) }}:
   - task: Bash@3
     condition: ne(parameters.vmImage, 'mac-arm64')
     inputs:
