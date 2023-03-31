@@ -2,28 +2,26 @@ parameters:
 - name: vmImage
   default: 'windows'
 steps:
-- script: |
-    echo 'vmImage - ${{ parameters.vmImage }}'
-- ${{ if not(eq(parameters.vmImage, 'mac-arm64')) }}:
-  - task: UsePythonVersion@0
-    inputs:
-      versionSpec: '3.10'
-- ${{ if not(eq(parameters.vmImage, 'mac-arm64')) }}:
-  - task: Bash@3
-    inputs:
-      filePath: $(buildScript)
-      arguments: $(buildScriptArgs)
-- ${{ if eq(parameters.vmImage, 'mac-arm64') }}:
-  - task: UniversalPackages@0
-    displayName: 'Download osx-arm64 package'
-    inputs:
-      command: download
-      vstsFeed: 'Database Systems/azuredatastudio-mysql'
-      vstsFeedPackage: 'mysqltoolsservice-osx-arm64'
-      vstsPackageVersion: '0.0.1'
-      downloadDirectory: '$(Build.SourcesDirectory)'
-- ${{ if eq(parameters.vmImage, 'mac-arm64') }}:
-  - task: ExtractFiles@1
-    inputs:
-      archiveFilePatterns: '**/*.tar.gz'
-      destinationFolder: $(Build.SourcesDirectory)/build
+- task: UsePythonVersion@0
+  condition: ${{ if ne(parameters.vmImage, 'mac-arm64') }}
+  inputs:
+    versionSpec: '3.10'
+- task: Bash@3
+  condition: ${{ if ne(parameters.vmImage, 'mac-arm64') }}
+  inputs:
+    filePath: $(buildScript)
+    arguments: $(buildScriptArgs)
+- task: UniversalPackages@0
+  displayName: 'Download osx-arm64 package'
+  condition: ${{ if eq(parameters.vmImage, 'mac-arm64') }}
+  inputs:
+    command: download
+    vstsFeed: 'Database Systems/azuredatastudio-mysql'
+    vstsFeedPackage: 'mysqltoolsservice-osx-arm64'
+    vstsPackageVersion: '0.0.1'
+    downloadDirectory: '$(Build.SourcesDirectory)'
+- task: ExtractFiles@1
+  condition: ${{ if eq(parameters.vmImage, 'mac-arm64') }}
+  inputs:
+    archiveFilePatterns: '**/*.tar.gz'
+    destinationFolder: $(Build.SourcesDirectory)/build
