@@ -36,10 +36,10 @@ pool:
 steps:
 - template: templates/build.yml
   parameters:
-    platform: ${{ variables.platform }}
+    platform: ${platform}
 - template: templates/code-signing.yml
   parameters:
-    platform: ${{ variables.platform }}
+    platform: ${platform}
 - task: DeleteFiles@1
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
