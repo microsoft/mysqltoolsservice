@@ -5,7 +5,7 @@ parameters:
 steps:
 - task: EsrpCodeSigning@2
   displayName: 'Code Signing for windows'
-  condition: eq(parameter.platform, 'windows')
+  condition: ${{ eq(parameter.platform, 'windows') }}
   inputs:
     ConnectedServiceName: 'Database System ESRP Connector'
     FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'

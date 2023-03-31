@@ -4,7 +4,7 @@ parameters:
   default: 'windows'
 steps:
 - task: UsePythonVersion@0
-  condition: ne(parameters.platform, 'mac-arm64')
+  condition: ${{ ne(parameters.platform, 'mac-arm64') }}
   inputs:
     versionSpec: '3.10'
 - task: Bash@3
