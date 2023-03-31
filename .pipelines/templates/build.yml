@@ -8,17 +8,3 @@ steps:
   inputs:
     filePath: $(buildScript)
     arguments: $(buildScriptArgs)
-- task: UniversalPackages@0
-  displayName: 'Download osx-arm64 package'
-  condition: eq('${{ parameters.platform }}', 'mac-arm64')
-  inputs:
-    command: download
-    vstsFeed: 'Database Systems/azuredatastudio-mysql'
-    vstsFeedPackage: 'mysqltoolsservice-osx-arm64'
-    vstsPackageVersion: '0.0.1'
-    downloadDirectory: '$(Build.SourcesDirectory)'
-- task: ExtractFiles@1
-  condition: eq('${{ parameters.platform }}', 'mac-arm64')
-  inputs:
-    archiveFilePatterns: '**/*.tar.gz'
-    destinationFolder: $(Build.SourcesDirectory)/build
