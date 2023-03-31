@@ -1,5 +1,6 @@
 parameters:
 - name: platform
+  type: string
   default: 'windows'
 steps:
 - task: UsePythonVersion@0
