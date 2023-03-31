@@ -5,7 +5,6 @@ steps:
 - ${{ if eq(parameters.vmImage, 'windows') }}:
   - task: EsrpCodeSigning@2
     displayName: 'Code Signing for windows'
-    condition: eq(parameters.vmImage, 'windows')
     inputs:
       ConnectedServiceName: 'Database System ESRP Connector'
       FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
@@ -48,7 +47,6 @@ steps:
 - ${{ if not(eq(parameters.vmImage, 'windows')) }}:
   - task: EsrpCodeSigning@2
     displayName: 'Code Signing for linux and mac'
-    condition: ne(parameters.vmImage, 'windows')
     inputs:
       ConnectedServiceName: 'Database System ESRP Connector'
       FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
@@ -71,7 +69,6 @@ steps:
 - ${{ if not(eq(parameters.vmImage, 'windows')) }}:
   - task: CmdLine@2
     displayName: 'Post-sign steps for non-windows platforms'
-    condition: ne(parameters.vmImage, 'windows')
     inputs:
       script: |
         mv $(Build.SourcesDirectory)/build/ossdbtoolsservice_main $(Build.SourcesDirectory)/build/mysqltoolsservice
