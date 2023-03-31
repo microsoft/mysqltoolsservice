@@ -39,7 +39,7 @@ steps:
     platform: $(platform)
 - template: templates/code-signing.yml
   parameters:
-    vmImage: $(platform)
+    platform: $(platform)
 - task: DeleteFiles@1
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
