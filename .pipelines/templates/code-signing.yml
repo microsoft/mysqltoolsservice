@@ -4,7 +4,7 @@ parameters:
 steps:
 - task: EsrpCodeSigning@2
   displayName: 'Code Signing for windows'
-  condition: ${{ if eq(parameters.vmImage, 'windows') }}
+  condition: eq('${{ parameters.vmImage }}', 'windows')
   inputs:
     ConnectedServiceName: 'Database System ESRP Connector'
     FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
@@ -39,14 +39,14 @@ steps:
     MaxRetryAttempts: '5'
 - task: CmdLine@2
   displayName: 'Pre-sign steps for non-windows platform'
-  condition: ${{ if ne(parameters.vmImage, 'windows') }}
+  condition: ne('${{ parameters.vmImage }}', 'windows')
   inputs:
     script: |
       cp $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main $(Build.SourcesDirectory)/build
       mv $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main_sig
 - task: EsrpCodeSigning@2
   displayName: 'Code Signing for linux and mac'
-  condition: ${{ if ne(parameters.vmImage, 'windows') }}
+  condition: ne('${{ parameters.vmImage }}', 'windows')
   inputs:
     ConnectedServiceName: 'Database System ESRP Connector'
     FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
@@ -68,7 +68,7 @@ steps:
     MaxRetryAttempts: '5'
 - task: CmdLine@2
   displayName: 'Post-sign steps for non-windows platforms'
-  condition: ${{ if ne(parameters.vmImage, 'windows') }}
+  condition: ne('${{ parameters.vmImage }}', 'windows')
   inputs:
     script: |
       mv $(Build.SourcesDirectory)/build/ossdbtoolsservice_main $(Build.SourcesDirectory)/build/mysqltoolsservice
