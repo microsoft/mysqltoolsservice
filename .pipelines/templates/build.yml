@@ -6,17 +6,17 @@ steps:
 - script: |
     echo ${{ parameters.platform }}
 - task: UsePythonVersion@0
-  condition: ${{ ne(parameters.platform, 'mac-arm64') }}
+  condition: ne(${{ parameters.platform }}, 'mac-arm64')
   inputs:
     versionSpec: '3.10'
 - task: Bash@3
-  condition: ne('${{ parameters.platform }}', 'mac-arm64')
+  condition: ne(${{ parameters.platform }}, 'mac-arm64')
   inputs:
     filePath: $(buildScript)
     arguments: $(buildScriptArgs)
 - task: UniversalPackages@0
   displayName: 'Download osx-arm64 package'
-  condition: eq('${{ parameters.platform }}', 'mac-arm64')
+  condition: eq(${{ parameters.platform }}, 'mac-arm64')
   inputs:
     command: download
     vstsFeed: 'Database Systems/azuredatastudio-mysql'
@@ -24,7 +24,7 @@ steps:
     vstsPackageVersion: '0.0.1'
     downloadDirectory: '$(Build.SourcesDirectory)'
 - task: ExtractFiles@1
-  condition: eq('${{ parameters.platform }}', 'mac-arm64')
+  condition: eq(${{ parameters.platform }}, 'mac-arm64')
   inputs:
     archiveFilePatterns: '**/*.tar.gz'
     destinationFolder: $(Build.SourcesDirectory)/build
