@@ -3,6 +3,8 @@ parameters:
   type: string
   default: 'windows'
 steps:
+- script: |
+    echo ${{ parameters.platform }}
 - task: UsePythonVersion@0
   condition: ${{ ne(parameters.platform, 'mac-arm64') }}
   inputs:
