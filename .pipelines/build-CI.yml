@@ -3,34 +3,56 @@ pr: none
 strategy:
   matrix:
     linux:
+      platform: 'ubuntu18'
       imageName: 'ubuntu-18.04'
       buildScript: 'scripts/build-linux.sh'
       archiveFileName: 'mysqltoolsservice-linux-x64.tar.gz'
       archiveType: 'tar'
     ubuntu22:
+      platform: 'ubuntu22'
       imageName: 'ubuntu-22.04'
       buildScript: 'scripts/build-linux.sh'
       archiveFileName: 'mysqltoolsservice-ubuntu22-x64.tar.gz'
       archiveType: 'tar'
     mac-x64:
+      platform: 'mac-x64'
       imageName: 'macOS-latest'
       buildScript: 'scripts/build-mac.sh'
       archiveFileName: 'mysqltoolsservice-osx.tar.gz'
       archiveType: 'tar'
     mac-arm64:
+      platform: 'mac-arm64'
       imageName: 'macOS-latest'
       archiveFileName: 'mysqltoolsservice-osx-arm64.tar.gz'
       archiveType: 'tar'
     windows:
+      platform: 'windows'
       imageName: 'windows-latest'
       buildScript: 'scripts/build.sh'
       archiveFileName: 'mysqltoolsservice-win-x64.zip'
       archiveType: 'zip'
 pool:
   vmImage: $(imageName)
+parameters:
+- name: osPlatform
+  displayName: 'OS Platform'
+  type: string
+  default: $(platform)
+  values:
+  - windows
+  - ubuntu18
+  - ubuntu22
+  - mac-x64
+  - mac-arm64
 steps:
-- template: templates/build.yml
-- template: templates/code-signing.yml
+- ${{ if eq(parameters.osPlatform, 'mac-arm64') }}:
+  - template: templates/mac-arm64-build.yml
+- ${{ if ne(parameters.osPlatform, 'mac-arm64') }}:
+  - template: templates/build.yml
+- ${{ if eq(parameters.osPlatform, 'windows') }}:
+  - template: templates/windows-code-signing.yml
+- ${{ if ne(parameters.osPlatform, 'windows') }}:
+  - template: templates/linux-mac-code-signing.yml
 - task: DeleteFiles@1
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
