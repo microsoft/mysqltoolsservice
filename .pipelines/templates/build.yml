@@ -2,6 +2,8 @@ parameters:
 - name: vmImage
   default: 'windows'
 steps:
+- script: |
+    echo 'vmImage - ${{ parameters.vmImage }}'
 - ${{ if not(eq(parameters.vmImage, 'mac-arm64')) }}:
   - task: UsePythonVersion@0
     inputs:

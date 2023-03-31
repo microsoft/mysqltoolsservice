@@ -2,6 +2,8 @@ parameters:
 - name: vmImage
   default: 'windows'
 steps:
+- script: |
+    echo 'vmImage - ${{ parameters.vmImage }}'
 - ${{ if eq(parameters.vmImage, 'windows') }}:
   - task: EsrpCodeSigning@2
     displayName: 'Code Signing for windows'
