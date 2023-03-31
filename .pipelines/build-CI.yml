@@ -34,13 +34,13 @@ strategy:
 pool:
   vmImage: $(imageName)
 steps:
-- $[ if eq(variables['platform'], 'mac-arm64') ]:
+- $[ if eq($(platform), 'mac-arm64') ]:
   - template: templates/mac-arm64-build.yml
-- $[ if ne(variables['platform'], 'mac-arm64') ]:
+- $[ if ne($(platform), 'mac-arm64') ]:
   - template: templates/build.yml
-- $[ if eq(variables['platform'], 'windows') }} ]:
+- $[ if eq($(platform), 'windows') }} ]:
   - template: templates/windows-code-signing.yml
-- $[ if ne(variables['platform'], 'windows') }} ]:
+- $[ if ne($(platform), 'windows') }} ]:
   - template: templates/linux-mac-code-signing.yml
 - task: DeleteFiles@1
   inputs:
