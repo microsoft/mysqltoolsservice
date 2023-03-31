@@ -36,7 +36,7 @@ pool:
 steps:
 - template: templates/build.yml
   parameters:
-    vmImage: $(platform)
+    platform: $(platform)
 - template: templates/code-signing.yml
   parameters:
     vmImage: $(platform)
