@@ -35,10 +35,10 @@ pool:
   vmImage: $(imageName)
 steps:
 - template: templates/build.yml
-  paramters:
+  parameters:
     vmImage: $(platform)
 - template: templates/code-signing.yml
-  paramters:
+  parameters:
     vmImage: $(platform)
 - task: DeleteFiles@1
   inputs:
