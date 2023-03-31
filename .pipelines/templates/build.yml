@@ -1,8 +1,28 @@
+parameters:
+- name: platform
+  type: string
+  default: 'windows'
 steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '3.10'
-- task: Bash@3
-  inputs:
-    filePath: $(buildScript)
-    arguments: $(buildScriptArgs)
+${{ if ne(parameters.platform, 'mac-arm64') }}:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.10'
+${{ if ne(parameters.platform, 'mac-arm64') }}:
+  - task: Bash@3
+    inputs:
+      filePath: $(buildScript)
+      arguments: $(buildScriptArgs)
+${{ if eq(parameters.platform, 'mac-arm64') }}:
+  - task: UniversalPackages@0
+    displayName: 'Download osx-arm64 package'
+    inputs:
+      command: download
+      vstsFeed: 'Database Systems/azuredatastudio-mysql'
+      vstsFeedPackage: 'mysqltoolsservice-osx-arm64'
+      vstsPackageVersion: '0.0.1'
+      downloadDirectory: '$(Build.SourcesDirectory)'
+${{ if eq(parameters.platform, 'mac-arm64') }}:
+  - task: ExtractFiles@1
+    inputs:
+      archiveFilePatterns: '**/*.tar.gz'
+      destinationFolder: $(Build.SourcesDirectory)/build
