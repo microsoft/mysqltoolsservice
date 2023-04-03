@@ -92,13 +92,6 @@ class ObjectExplorerService(object):
 
             # Add the session to session map in a lock to prevent race conditions between check and add
             with self._session_lock:
-                if session_id in self._session_map:
-                    # Removed the exception for now. But we need to investigate why we would get this
-                    if self._service_provider.logger is not None:
-                        self._service_provider.logger.error(f'Object explorer session for {session_id} already exists!')
-                    request_context.send_response(False)
-                    return
-
                 self._session_map[session_id] = session
 
             # Respond that the session was created
