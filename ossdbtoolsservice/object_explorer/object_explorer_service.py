@@ -88,12 +88,15 @@ class ObjectExplorerService(object):
 
             # Generate the session ID and create/store the session
             session_id = self._generate_session_uri(params, self._provider)
-            session: ObjectExplorerSession = ObjectExplorerSession(session_id, params)
-
-            # Add the session to session map in a lock to prevent race conditions between check and add
-            with self._session_lock:
-                self._session_map[session_id] = session
-
+            session : ObjectExplorerSession = None
+            if session_id in self._session_map:
+                session = self._session_map[session_id]
+            else:
+                session = ObjectExplorerSession(session_id, params)
+                # Add the session to session map in a lock to prevent race conditions between check and add
+                with self._session_lock:
+                    self._session_map[session_id] = session
+                    
             # Respond that the session was created
             response = CreateSessionResponse(session_id)
             request_context.send_response(response)
