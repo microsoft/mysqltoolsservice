@@ -89,8 +89,11 @@ class ObjectExplorerService(object):
             # Generate the session ID and create/store the session
             session_id = self._generate_session_uri(params, self._provider)
             session : ObjectExplorerSession = None
+            is_new_session: bool = True
+            
             if session_id in self._session_map:
                 session = self._session_map[session_id]
+                is_new_session = False
             else:
                 session = ObjectExplorerSession(session_id, params)
                 # Add the session to session map in a lock to prevent race conditions between check and add
@@ -111,7 +114,7 @@ class ObjectExplorerService(object):
 
         # Step 2: Connect the session and lookup the root node asynchronously
         try:
-            session.init_task = threading.Thread(target=self._initialize_session, args=(request_context, session))
+            session.init_task = threading.Thread(target=self._initialize_session, args=(request_context, session, is_new_session))
             session.init_task.daemon = True
             session.init_task.start()
         except Exception as e:
@@ -264,28 +267,30 @@ class ObjectExplorerService(object):
         connection = conn_service.get_connection(key_uri, ConnectionType.OBJECT_EXLPORER, request_context)
         return connection
 
-    def _initialize_session(self, request_context: RequestContext, session: ObjectExplorerSession):
+    def _initialize_session(self, request_context: RequestContext, session: ObjectExplorerSession, is_new_session: bool = True):
         conn_service = self._service_provider[utils.constants.CONNECTION_SERVICE_NAME]
         connection = None
 
         try:
-            # Step 1: Connect with the provided connection details
-            connect_request = ConnectRequestParams(
-                session.connection_details,
-                session.id,
-                ConnectionType.OBJECT_EXLPORER
-            )
-            connect_result = conn_service.connect(connect_request, request_context)
-            if connect_result is None:
-                raise RuntimeError('Connection was cancelled during connect')   # TODO Localize
-            if connect_result.error_message is not None:
-                raise RuntimeError(connect_result.error_message)
+            if is_new_session:
+                # Step 1: Connect with the provided connection details
+                connect_request = ConnectRequestParams(
+                    session.connection_details,
+                    session.id,
+                    ConnectionType.OBJECT_EXLPORER
+                )
+                connect_result = conn_service.connect(connect_request, request_context)
+                if connect_result is None:
+                    raise RuntimeError('Connection was cancelled during connect')   # TODO Localize
+                if connect_result.error_message is not None:
+                    raise RuntimeError(connect_result.error_message)
 
-            # Step 2: Get the connection to use for object explorer
-            connection = conn_service.get_connection(session.id, ConnectionType.OBJECT_EXLPORER, request_context)
+                # Step 2: Get the connection to use for object explorer
+                connection = conn_service.get_connection(session.id, ConnectionType.OBJECT_EXLPORER, request_context)
 
-            # Step 3: Create the Server object for the session and create the root node for the server
-            session.server = self._server(connection, functools.partial(self._create_connection, session, request_context=request_context))
+                # Step 3: Create the Server object for the session and create the root node for the server
+                session.server = self._server(connection, functools.partial(self._create_connection, session, request_context=request_context))
+
             metadata = ObjectMetadata(session.server.urn_base, None, 'Database', session.server.maintenance_db_name)
             node = NodeInfo()
             node.label = session.connection_details.database_name
