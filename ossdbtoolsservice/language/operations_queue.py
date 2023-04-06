@@ -160,7 +160,7 @@ class OperationsQueue:
         """
         Creates a key uniquely identifying a ConnectionInfo object for use in caching
         """
-        return '{0}|{1}|{2}|{3}'.format(conn_info.details.server_name, conn_info.details.database_name, conn_info.details.user_name, conn_info.details.port)
+        return '{0}|{1}|{2}|{3}|{4}|{5}'.format(conn_info.details.options['host'], conn_info.details.options['dbname'], conn_info.details.options['user'], conn_info.details.options['port'], conn_info.details.options['authenticationType'], conn_info.details.options['groupId'])
 
     def _create_connection(self, connection_key: str, conn_info: ConnectionInfo, request_context: RequestContext) -> Optional[ServerConnection]:
         conn_service = self._connection_service

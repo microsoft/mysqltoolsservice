@@ -345,11 +345,12 @@ class ObjectExplorerService(object):
         host = quote(params.options['host'])
         user = quote(params.options['user'])
         db = quote(params.options['dbname'])
-        # Port number distinguishes between connections to different server
-        # instances with the same username, dbname running on same host
+        group_id = quote(params.options['groupId'])
+        authentication_type = quote(params.options['authenticationType'])
+        # Port number distinguishes between connections to different server instances with the same username, dbname running on same host
         port = quote(str(params.options['port']))
-
-        return f'objectexplorer://{user}@{host}:{port}:{db}/'
+        
+        return f'objectexplorer://{user}@{host}:{port}:{db}:{authentication_type}:{group_id}/'
 
     def _route_request(self, is_refresh: bool, session: ObjectExplorerSession, path: str) -> List[NodeInfo]:
         """
