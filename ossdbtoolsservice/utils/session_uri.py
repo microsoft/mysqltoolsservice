@@ -13,7 +13,7 @@ def generate_session_uri(params):
         params.options['host'] if is_not_none_or_empty(params.options['host']) else "NULL",
         params.options['dbname'] if is_not_none_or_empty(params.options['dbname']) else "NULL",
         params.options['user'] if is_not_none_or_empty(params.options['user']) else "NULL",
-        params.options['port'] if is_not_none_or_empty(params.options['port']) else "NULL",
+        params.options['port'] if is_not_none_or_empty(str(params.options['port'])) else "NULL",
         params.options['authenticationType'] if is_not_none_or_empty(params.options['authenticationType']) else "NULL",
         params.options['groupId'] if is_not_none_or_empty(params.options['groupId']) else "NULL"
     )
