@@ -336,21 +336,7 @@ class ObjectExplorerService(object):
 
     @staticmethod
     def _generate_session_uri(params: ConnectionDetails, provider_name: str) -> str:
-        # Make sure the required params are provided
-        utils.validate.is_not_none_or_whitespace('params.server_name', params.options.get('host'))
-        utils.validate.is_not_none_or_whitespace('params.user_name', params.options.get('user'))
-        utils.validate.is_not_none('params.port', params.options.get('port'))
-
-        # Generates a session ID that will function as the base URI for the session
-        host = quote(params.options['host'])
-        user = quote(params.options['user'])
-        db = quote(params.options['dbname'])
-        group_id = quote(params.options['groupId'])
-        authentication_type = quote(params.options['authenticationType'])
-        # Port number distinguishes between connections to different server instances with the same username, dbname running on same host
-        port = quote(str(params.options['port']))
-        
-        return f'objectexplorer://{user}@{host}:{port}:{db}:{authentication_type}:{group_id}/'
+        return "objectexplorer://{0}/".format(utils.generate_session_uri(params))
 
     def _route_request(self, is_refresh: bool, session: ObjectExplorerSession, path: str) -> List[NodeInfo]:
         """

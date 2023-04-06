@@ -14,7 +14,7 @@ import ossdbtoolsservice.utils.thread
 import ossdbtoolsservice.utils.time
 import ossdbtoolsservice.utils.validate         # noqa
 import ossdbtoolsservice.utils.ip
-
+from ossdbtoolsservice.utils.session_uri import generate_session_uri
 __all__ = [
     'cancellation',
     'constants',
@@ -24,5 +24,6 @@ __all__ = [
     'time',
     'validate',
     'telemetryUtils',
-    'ip'
+    'ip',
+    'generate_session_uri'
 ]
