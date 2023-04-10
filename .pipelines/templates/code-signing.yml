@@ -1,9 +1,10 @@
 parameters:
-- name: platform
+- name: ostype
   type: string
-  default: 'windows'
+  default: 'None'
+
 steps:
-- ${{ if eq(parameters.platform, 'windows') }}:
+- ${{ if eq(parameters.ostype, 'windows') }}:
   - task: EsrpCodeSigning@2
     displayName: 'Code Signing for windows'
     inputs:
@@ -38,14 +39,14 @@ steps:
       SessionTimeout: '60'
       MaxConcurrency: '50'
       MaxRetryAttempts: '5'
-- ${{ if ne(parameters.platform, 'windows') }}:
+- ${{ if ne(parameters.ostype, 'windows') }}:
   - task: CmdLine@2
     displayName: 'Pre-sign steps for non-windows platform'
     inputs:
       script: |
         cp $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main $(Build.SourcesDirectory)/build
         mv $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main $(Build.SourcesDirectory)/build/mysqltoolsservice/ossdbtoolsservice_main_sig
-- ${{ if ne(parameters.platform, 'windows') }}:
+- ${{ if ne(parameters.ostype, 'windows') }}:
   - task: EsrpCodeSigning@2
     displayName: 'Code Signing for linux and mac'
     inputs:
@@ -67,7 +68,7 @@ steps:
       SessionTimeout: '60'
       MaxConcurrency: '50'
       MaxRetryAttempts: '5'
-- ${{ if ne(parameters.platform, 'windows') }}:
+- ${{ if  ne(parameters.ostype, 'windows') }}:
   - task: CmdLine@2
     displayName: 'Post-sign steps for non-windows platforms'
     inputs:
