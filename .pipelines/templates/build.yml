@@ -1,31 +1,8 @@
-parameters:
-- name: ostype
-  type: string
-  default: 'None'
-
 steps:
-- script: echo "ostype is ${{ parameters.ostype }}"
-- script: echo "platform is $(platform)"
 - task: UsePythonVersion@0
-  condition: ne('$(platform)', 'mac-arm64')
   inputs:
     versionSpec: '3.10'
 - task: Bash@3
-  condition: ne('$(platform)', 'mac-arm64')
   inputs:
     filePath: $(buildScript)
     arguments: $(buildScriptArgs)
-- task: UniversalPackages@0
-  condition: eq('$(platform)', 'mac-arm64')
-  displayName: 'Download osx-arm64 package'
-  inputs:
-    command: download
-    vstsFeed: 'Database Systems/azuredatastudio-mysql'
-    vstsFeedPackage: 'mysqltoolsservice-osx-arm64'
-    vstsPackageVersion: '0.0.1'
-    downloadDirectory: '$(Build.SourcesDirectory)'
-- task: ExtractFiles@1
-  condition: eq('$(platform)', 'mac-arm64')
-  inputs:
-    archiveFilePatterns: '**/*.tar.gz'
-    destinationFolder: $(Build.SourcesDirectory)/build
