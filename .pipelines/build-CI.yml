@@ -36,7 +36,7 @@ pool:
 steps:
 - template: templates/build.yml
   parameters:
-    ostype: $(platform)
+    ostype: 'mac-arm64'
 - template: templates/code-signing.yml
   parameters:
     ostype: $(platform)
