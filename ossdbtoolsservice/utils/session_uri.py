@@ -3,8 +3,8 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 # --------------------------------------------------------------------------------------------
 
-def is_none_or_empty(value_to_check: str):
-    if value_to_check is None or len(value_to_check.strip()) == 0:
+def is_none_or_empty(value_to_check):
+    if value_to_check is None or len(str(value_to_check).strip()) == 0:
         return True
     return False
 
