@@ -8,28 +8,13 @@ def is_none_or_empty(value_to_check: str):
         return True
     return False
 
-def validate_params(params):
-    if not params.options.get('host') or is_none_or_empty(params.options.get('host')):
-        params.options['host'] = 'NULL'
-    if not params.options.get('dbname') or is_none_or_empty(params.options.get('dbname')):
-        params.options['dbname'] = 'NULL'
-    if not params.options.get('user') or is_none_or_empty(params.options.get('user')):
-        params.options['user'] = 'NULL'
-    if not params.options.get('port') or is_none_or_empty(params.options.get('port')):
-        params.options['port'] = 'NULL'
-    if not params.options.get('authenticationType') or is_none_or_empty(params.options.get('authenticationType')):
-        params.options['authenticationType'] = 'NULL'
-    if not params.options.get('groupId') or is_none_or_empty(params.options.get('groupId')):
-        params.options['groupId'] = 'NULL'
-
 def generate_session_uri(params):
-    validate_params(params)
     session_uri = "{0}:{1}:{2}:{3}:{4}:{5}".format(
-        params.options['host'],
-        params.options['dbname'],
-        params.options['user'],
-        params.options['port'],
-        params.options['authenticationType'],
-        params.options['groupId']
+        params.options['host'] if not params.options.get('host') or is_none_or_empty(params.options.get('host')) else 'NULL',
+        params.options['dbname'] if not params.options.get('dbname') or is_none_or_empty(params.options.get('dbname')) else 'NULL',
+        params.options['user'] if not params.options.get('user') or is_none_or_empty(params.options.get('user')) else 'NULL',
+        params.options['port'] if not params.options.get('port') or is_none_or_empty(params.options.get('port')) else 'NULL',
+        params.options['authenticationType'] if not params.options.get('authenticationType') or is_none_or_empty(params.options.get('authenticationType')) else 'NULL',
+        params.options['groupId'] if not params.options.get('groupId') or is_none_or_empty(params.options.get('groupId')) else 'NULL'
     )
     return session_uri
