@@ -2,6 +2,7 @@ parameters:
 - name: platform
   type: string
   default: 'windows'
+
 steps:
 - ${{ if ne(parameters.platform, 'mac-arm64') }}:
   - task: UsePythonVersion@0
