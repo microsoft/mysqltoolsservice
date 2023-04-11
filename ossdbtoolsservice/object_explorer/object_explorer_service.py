@@ -88,19 +88,18 @@ class ObjectExplorerService(object):
 
             # Generate the session ID and create/store the session
             session_id = self._generate_session_uri(params, self._provider)
-            session: ObjectExplorerSession = ObjectExplorerSession(session_id, params)
-
-            # Add the session to session map in a lock to prevent race conditions between check and add
-            with self._session_lock:
-                if session_id in self._session_map:
-                    # Removed the exception for now. But we need to investigate why we would get this
-                    if self._service_provider.logger is not None:
-                        self._service_provider.logger.error(f'Object explorer session for {session_id} already exists!')
-                    request_context.send_response(False)
-                    return
-
-                self._session_map[session_id] = session
-
+            session : ObjectExplorerSession = None
+            is_new_session: bool = True
+            
+            if session_id in self._session_map:
+                session = self._session_map[session_id]
+                is_new_session = False
+            else:
+                session = ObjectExplorerSession(session_id, params)
+                # Add the session to session map in a lock to prevent race conditions between check and add
+                with self._session_lock:
+                    self._session_map[session_id] = session
+                    
             # Respond that the session was created
             response = CreateSessionResponse(session_id)
             request_context.send_response(response)
@@ -115,7 +114,7 @@ class ObjectExplorerService(object):
 
         # Step 2: Connect the session and lookup the root node asynchronously
         try:
-            session.init_task = threading.Thread(target=self._initialize_session, args=(request_context, session))
+            session.init_task = threading.Thread(target=self._initialize_session, args=(request_context, session, is_new_session))
             session.init_task.daemon = True
             session.init_task.start()
         except Exception as e:
@@ -268,28 +267,30 @@ class ObjectExplorerService(object):
         connection = conn_service.get_connection(key_uri, ConnectionType.OBJECT_EXLPORER, request_context)
         return connection
 
-    def _initialize_session(self, request_context: RequestContext, session: ObjectExplorerSession):
+    def _initialize_session(self, request_context: RequestContext, session: ObjectExplorerSession, is_new_session: bool = True):
         conn_service = self._service_provider[utils.constants.CONNECTION_SERVICE_NAME]
         connection = None
 
         try:
-            # Step 1: Connect with the provided connection details
-            connect_request = ConnectRequestParams(
-                session.connection_details,
-                session.id,
-                ConnectionType.OBJECT_EXLPORER
-            )
-            connect_result = conn_service.connect(connect_request, request_context)
-            if connect_result is None:
-                raise RuntimeError('Connection was cancelled during connect')   # TODO Localize
-            if connect_result.error_message is not None:
-                raise RuntimeError(connect_result.error_message)
+            if is_new_session:
+                # Step 1: Connect with the provided connection details
+                connect_request = ConnectRequestParams(
+                    session.connection_details,
+                    session.id,
+                    ConnectionType.OBJECT_EXLPORER
+                )
+                connect_result = conn_service.connect(connect_request, request_context)
+                if connect_result is None:
+                    raise RuntimeError('Connection was cancelled during connect')   # TODO Localize
+                if connect_result.error_message is not None:
+                    raise RuntimeError(connect_result.error_message)
 
-            # Step 2: Get the connection to use for object explorer
-            connection = conn_service.get_connection(session.id, ConnectionType.OBJECT_EXLPORER, request_context)
+                # Step 2: Get the connection to use for object explorer
+                connection = conn_service.get_connection(session.id, ConnectionType.OBJECT_EXLPORER, request_context)
 
-            # Step 3: Create the Server object for the session and create the root node for the server
-            session.server = self._server(connection, functools.partial(self._create_connection, session, request_context=request_context))
+                # Step 3: Create the Server object for the session and create the root node for the server
+                session.server = self._server(connection, functools.partial(self._create_connection, session, request_context=request_context))
+
             metadata = ObjectMetadata(session.server.urn_base, None, 'Database', session.server.maintenance_db_name)
             node = NodeInfo()
             node.label = session.connection_details.database_name
@@ -335,20 +336,7 @@ class ObjectExplorerService(object):
 
     @staticmethod
     def _generate_session_uri(params: ConnectionDetails, provider_name: str) -> str:
-        # Make sure the required params are provided
-        utils.validate.is_not_none_or_whitespace('params.server_name', params.options.get('host'))
-        utils.validate.is_not_none_or_whitespace('params.user_name', params.options.get('user'))
-        utils.validate.is_not_none('params.port', params.options.get('port'))
-
-        # Generates a session ID that will function as the base URI for the session
-        host = quote(params.options['host'])
-        user = quote(params.options['user'])
-        db = quote(params.options['dbname'])
-        # Port number distinguishes between connections to different server
-        # instances with the same username, dbname running on same host
-        port = quote(str(params.options['port']))
-
-        return f'objectexplorer://{user}@{host}:{port}:{db}/'
+        return "objectexplorer://{0}/".format(utils.generate_session_uri(params))
 
     def _route_request(self, is_refresh: bool, session: ObjectExplorerSession, path: str) -> List[NodeInfo]:
         """
