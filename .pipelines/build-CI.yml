@@ -34,12 +34,14 @@ strategy:
 pool:
   vmImage: $(imageName)
 steps:
-- template: templates/build.yml
-  parameters:
-    platform: ${platform}
-- template: templates/code-signing.yml
-  parameters:
-    platform: ${platform}
+- ${{ if ne(variables['platform'], 'mac-arm64') }}:
+  - template: templates/build.yml
+- ${{ if eq(variables['platform'], 'mac-arm64') }}:
+  - template: templates/build.yml
+- ${{ if eq(variables['platform'], 'windows') }}:
+  - template: templates/code-sign-windows.yml
+- ${{ if ne(variables['platform'], 'windows') }}:
+  - template: templates/code-sign-non-windows.yml
 - task: DeleteFiles@1
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
