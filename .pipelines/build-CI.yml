@@ -35,13 +35,7 @@ pool:
   vmImage: $(imageName)
 steps:
 - template: templates/build.yml
-  condition: ne(variables['platform'], 'mac-arm64')
-- template: templates/build-mac-arm64.yml
-  condition: eq(variables['platform'], 'mac-arm64')
-- template: templates/code-sign-windows.yml
-  condition: eq(variables['platform'], 'windows')
-- template: templates/code-sign-non-windows.yml
-  condition: ne(variables['platform'], 'windows')
+- template: templates/code-sign.yml
 - task: DeleteFiles@1
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
