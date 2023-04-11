@@ -1,28 +1,32 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger: none
 pr: none
 strategy:
   matrix:
     linux:
+      platform: 'ubuntu18'
       imageName: 'ubuntu-18.04'
       buildScript: 'scripts/build-linux.sh'
       archiveFileName: 'mysqltoolsservice-linux-x64.tar.gz'
       archiveType: 'tar'
     ubuntu22:
+      platform: 'ubuntu22'
       imageName: 'ubuntu-22.04'
       buildScript: 'scripts/build-linux.sh'
       archiveFileName: 'mysqltoolsservice-ubuntu22-x64.tar.gz'
       archiveType: 'tar'
-    mac:
+    mac-x64:
+      platform: 'mac-x64'
       imageName: 'macOS-latest'
       buildScript: 'scripts/build-mac.sh'
       archiveFileName: 'mysqltoolsservice-osx.tar.gz'
       archiveType: 'tar'
+    mac-arm64:
+      platform: 'mac-arm64'
+      imageName: 'macOS-latest'
+      archiveFileName: 'mysqltoolsservice-osx-arm64.tar.gz'
+      archiveType: 'tar'
     windows:
+      platform: 'windows'
       imageName: 'windows-latest'
       buildScript: 'scripts/build.sh'
       archiveFileName: 'mysqltoolsservice-win-x64.zip'
@@ -30,70 +34,8 @@ strategy:
 pool:
   vmImage: $(imageName)
 steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '3.10'
-- task: Bash@3
-  inputs:
-    filePath: $(buildScript)
-    arguments: $(buildScriptArgs)
-- task: EsrpCodeSigning@2
-  displayName: 'Code Signing for windows'
-  condition: eq(variables['imageName'], 'windows-latest')
-  inputs:
-    ConnectedServiceName: 'Database System ESRP Connector'
-    FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
-    Pattern: '*.exe,*.dll'
-    useMinimatch: true
-    signConfigType: inlineSignParams
-    inlineOperation: |
-      [
-        {
-          "KeyCode" : "CP-230012",
-          "OperationCode" : "SigntoolSign",
-          "Parameters" : {
-              "OpusName" : "Microsoft",
-              "OpusInfo" : "http://www.microsoft.com",
-              "FileDigest" : "/fd \"SHA256\"",
-              "PageHash" : "/NPH",
-              "TimeStamp" : "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-            },
-          "ToolName" : "sign",
-          "ToolVersion" : "1.0"
-        },
-        {
-          "KeyCode" : "CP-230012",
-          "OperationCode" : "SigntoolVerify",
-          "Parameters" : {},
-          "ToolName" : "sign",
-          "ToolVersion" : "1.0"
-        }
-      ]
-    SessionTimeout: '60'
-    MaxConcurrency: '50'
-    MaxRetryAttempts: '5'
-- task: EsrpCodeSigning@2
-  displayName: 'Code Signing for linux and mac'
-  condition: ne(variables['imageName'], 'windows-latest')
-  inputs:
-    ConnectedServiceName: 'Database System ESRP Connector'
-    FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
-    Pattern: '*'
-    useMinimatch: true
-    signConfigType: inlineSignParams
-    inlineOperation: |
-      [
-        {
-          "KeyCode" : "CP-450779-Pgp",
-          "OperationCode" : "PgpClearSign",
-          "Parameters" : {},
-          "ToolName" : "sign",
-          "ToolVersion" : "1.0"
-        }
-      ]
-    SessionTimeout: '60'
-    MaxConcurrency: '50'
-    MaxRetryAttempts: '5'
+- template: templates/build.yml
+- template: templates/code-sign.yml
 - task: DeleteFiles@1
   inputs:
     SourceFolder: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
