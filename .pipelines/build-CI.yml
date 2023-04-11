@@ -37,7 +37,7 @@ steps:
 - ${{ if ne(variables['platform'], 'mac-arm64') }}:
   - template: templates/build.yml
 - ${{ if eq(variables['platform'], 'mac-arm64') }}:
-  - template: templates/build.yml
+  - template: templates/build-mac-arm64.yml
 - ${{ if eq(variables['platform'], 'windows') }}:
   - template: templates/code-sign-windows.yml
 - ${{ if ne(variables['platform'], 'windows') }}:
