@@ -5,7 +5,9 @@ steps:
   inputs:
     ConnectedServiceName: 'Database System ESRP Connector'
     FolderPath: '$(Build.SourcesDirectory)/build/mysqltoolsservice'
-    Pattern: '*.exe,*.dll'
+    Pattern: |
+      *.exe
+      *.dll
     useMinimatch: true
     signConfigType: inlineSignParams
     inlineOperation: |
