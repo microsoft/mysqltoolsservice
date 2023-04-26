@@ -1,5 +1,4 @@
 import sqlparse
-from sqlparse.compat import text_type
 from sqlparse.sql import Comparison, Identifier, Where
 
 from .parseutils.mysql_utils.mysql_utils import extract_tables
@@ -53,7 +52,7 @@ def suggest_type(full_text, text_before_cursor):
         stmt_start, stmt_end = 0, 0
 
         for statement in parsed:
-            stmt_len = len(text_type(statement))
+            stmt_len = len(str(statement))
             stmt_start, stmt_end = stmt_end, stmt_end + stmt_len
 
             if stmt_end >= current_pos:

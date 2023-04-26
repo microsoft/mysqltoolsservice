@@ -19,7 +19,7 @@ executables = [
 
 setup(
     name = 'OSS MySQL Tools Service',
-    version = '0.1.0',
+    version = '0.1.2',
     description = 'Carbon data protocol server implementation for MySQL',
     options = dict(build_exe=buildOptions),
     executables = executables
