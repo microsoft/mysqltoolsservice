@@ -1,10 +1,8 @@
 trigger: none
 pr: none
 pool:
-  name: Azure Pipelines
   image: macOS-14
-  arch: arm64
 steps:
 - task: CmdLine@2
   inputs:
-    script: 'echo "Hello World"'
+    script: 'uname -a'
