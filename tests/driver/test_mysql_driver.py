@@ -29,7 +29,6 @@ class TestMySQLConnection(unittest.TestCase):
             'dbname': '',
             'groupId': 'C777F06B-202E-4480-B475-FA416154D458',
             'host': 'nitish-test.mysql.database.azure.com',
-            'password': 'pass@123',
             'user': 'nitish',
             'ssl': 'require',
         }
@@ -41,7 +40,6 @@ class TestMySQLConnection(unittest.TestCase):
             'connection_timeout': 30,
             'database': '',
             'host': 'nitish-test.mysql.database.azure.com',
-            'password': 'pass@123',
             'port': 3306,
             'user': 'nitish',
             'ssl_disabled': False,
@@ -62,7 +60,6 @@ class TestMySQLConnection(unittest.TestCase):
             'dbname': '',
             'groupId': 'C777F06B-202E-4480-B475-FA416154D458',
             'host': 'nitish-test.mysql.database.azure.com',
-            'password': 'pass@123',
             'user': 'nitish',
             'ssl': 'verify_ca',
             'ssl.ca': 'path_to_ssl_cert'
@@ -75,7 +72,6 @@ class TestMySQLConnection(unittest.TestCase):
             'connection_timeout': 30,
             'database': '',
             'host': 'nitish-test.mysql.database.azure.com',
-            'password': 'pass@123',
             'port': 3306,
             'user': 'nitish',
             'ssl_ca': 'path_to_ssl_cert',
@@ -97,7 +93,6 @@ class TestMySQLConnection(unittest.TestCase):
             'dbname': '',
             'groupId': 'C777F06B-202E-4480-B475-FA416154D458',
             'host': 'nitish-test.mysql.database.azure.com',
-            'password': 'pass@123',
             'user': 'nitish',
             'ssl': 'verify_identity',
             'ssl.ca': 'path_to_ssl_cert'
@@ -110,7 +105,6 @@ class TestMySQLConnection(unittest.TestCase):
             'connection_timeout': 30,
             'database': '',
             'host': 'nitish-test.mysql.database.azure.com',
-            'password': 'pass@123',
             'port': 3306,
             'user': 'nitish',
             'ssl_ca': 'path_to_ssl_cert',
@@ -132,7 +126,6 @@ class TestMySQLConnection(unittest.TestCase):
             'dbname': '',
             'groupId': 'C777F06B-202E-4480-B475-FA416154D458',
             'host': 'nitish-test.mysql.database.azure.com',
-            'password': 'pass@123',
             'user': 'nitish',
             'ssl': 'disable'
             }
@@ -144,7 +137,6 @@ class TestMySQLConnection(unittest.TestCase):
             'connection_timeout': 30,
             'database': '',
             'host': 'nitish-test.mysql.database.azure.com',
-            'password': 'pass@123',
             'port': 3306,
             'user': 'nitish',
             'ssl_disabled': True,
@@ -163,7 +155,6 @@ class TestMySQLConnection(unittest.TestCase):
             'dbname': '',
             'groupId': 'C777F06B-202E-4480-B475-FA416154D458',
             'host': 'nitish-test.mysql.database.azure.com',
-            'password': 'pass@123',
             'user': 'nitish',
             'port': 3307,
             'ssl': 'disable'
@@ -176,7 +167,6 @@ class TestMySQLConnection(unittest.TestCase):
             'connection_timeout': 30,
             'database': '',
             'host': 'nitish-test.mysql.database.azure.com',
-            'password': 'pass@123',
             'port': 3307,
             'user': 'nitish',
             'ssl_disabled': True,
@@ -195,7 +185,6 @@ class TestMySQLConnection(unittest.TestCase):
             'dbname': 'mysql',
             'groupId': 'C777F06B-202E-4480-B475-FA416154D458',
             'host': 'nitish-test.mysql.database.azure.com',
-            'password': 'pass@123',
             'user': 'nitish',
             'ssl': 'disable'
             }
@@ -207,7 +196,6 @@ class TestMySQLConnection(unittest.TestCase):
             'connection_timeout': 30,
             'database': 'mysql',
             'host': 'nitish-test.mysql.database.azure.com',
-            'password': 'pass@123',
             'port': 3306,
             'user': 'nitish',
             'ssl_disabled': True,
