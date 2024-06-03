@@ -3,7 +3,7 @@ mysql-connector-python==8.0.31
 
 # MySQLToolsService Requirements
 inflection==0.5.1
-sqlparse==0.4.4
+sqlparse==0.5.0
 prompt_toolkit==3.0.31
 xlsxwriter==3.0.3
 azure-mgmt-rdbms==10.1.0
